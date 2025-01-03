@@ -12,7 +12,7 @@ buildscript {
 
 plugins {
     id 'idea'
-    id 'fabric-loom' version '1.9.+'
+    id 'fabric-loom' version '1.8.+'
     id 'maven-publish'
     id "net.darkhax.curseforgegradle" version "1.1.15"
     id "com.modrinth.minotaur" version "2.+"
@@ -38,19 +38,8 @@ repositories {
 
     maven { url = "https://maven.fabricmc.net/" } // FAPI, Loader
     maven { url = "https://maven.quiltmc.org/repository/release" } // QM
-    maven {
-        name = "GitHubPackages"
-        url = uri("https://maven.pkg.github.com/Salandora/Porting-Lib")
-        credentials {
-            username = System.getenv("USERNAME")
-            password = System.getenv("READ_PACKAGES_TOKEN")
-        }
-        content {
-            includeGroupByRegex "io.github.fabricators_of_create.Porting-Lib.*"
-        }
-    }
-    /*maven { url = "https://mvn.devos.one/snapshots/" } // Create, Porting Lib
-    maven { url = "https://mvn.devos.one/releases/" } // Porting Lib*/
+    maven { url = "https://mvn.devos.one/snapshots/" } // Create, Porting Lib
+    maven { url = "https://mvn.devos.one/releases/" } // Porting Lib
 
     maven { // Forge Config API Port
         name = "Fuzs Mod Resources"
@@ -68,6 +57,10 @@ repositories {
     }
     maven { url = "https://maven.terraformersmc.com/releases/" } // Emi
     maven { url = "https://maven.shedaniel.me/" } // REI and deps
+    maven {
+        name = "entity reach"
+        url = "https://maven.jamieswhiteshirt.com/libs-release/"
+    }
 
     maven {
         name = "GHPCore"
@@ -263,7 +256,7 @@ tasks.register('validateMixinNames', ValidateMixinNameTask) {
 
 tasks.withType(JavaCompile).configureEach {
     it.options.encoding = 'UTF-8'
-    it.options.release = 21
+    it.options.release = 17
 }
 
 java {
@@ -272,8 +265,8 @@ java {
     // If you remove this line, sources will not be generated.
     withSourcesJar()
 
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 jar {
