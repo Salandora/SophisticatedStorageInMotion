@@ -19,6 +19,7 @@ public class CommonEventHandler {
 
 	public static void registerHandlers() {
 		PlayerEvents.ITEM_CRAFTED.register(CommonEventHandler::onMovingStorageUncrafted);
+		eventBus.addListener(TierUpgradeHandler::onTierUpgradeInteract);
 	}
 
 	private static void onMovingStorageUncrafted(Player player, ItemStack result, Container craftMatrix) {
