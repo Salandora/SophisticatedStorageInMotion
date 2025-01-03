@@ -49,8 +49,8 @@ repositories {
             includeGroupByRegex "io.github.fabricators_of_create.Porting-Lib.*"
         }
     }
-    /*maven { url = "https://mvn.devos.one/snapshots/" } // Create, Porting Lib
-    maven { url = "https://mvn.devos.one/releases/" } // Porting Lib*/
+    maven { url = "https://mvn.devos.one/snapshots/" } // Create, Porting Lib
+    maven { url = "https://mvn.devos.one/releases/" } // Porting Lib
 
     maven { // Forge Config API Port
         name = "Fuzs Mod Resources"
@@ -200,11 +200,16 @@ dependencies {
                 modApi("io.github.fabricators_of_create.Porting-Lib:${module.trim()}:$core.port_lib_version+$minecraft_version")
             }
         }
+        if (core.port_lib_modules_fixes != "none") {
+            for (def module in core.port_lib_modules_fixes.split(',')) {
+                modApi("io.github.fabricators_of_create.Porting-Lib:${module.trim()}:$core.port_lib_version_fixes+$minecraft_version")
+            }
+        }
     } else {
-        dependencies.implementation("sophisticatedcore:sophisticatedcore:${sc_version}") {
+        modImplementation("sophisticatedcore:sophisticatedcore:${sc_version}") {
             transitive = false
         }
-        dependencies.testImplementation("sophisticatedcore:sophisticatedcore:${sc_version}") {
+        testImplementation("sophisticatedcore:sophisticatedcore:${sc_version}") {
             transitive = false
         }
     }
@@ -217,10 +222,10 @@ dependencies {
             }
         }
     } else {
-        dependencies.implementation("sophisticatedstorage:sophisticatedstorage:${ss_version}") {
+        modImplementation("sophisticatedstorage:sophisticatedstorage:${ss_version}") {
             transitive = false
         }
-        dependencies.testImplementation("sophisticatedstorage:sophisticatedstorage:${ss_version}") {
+        testImplementation("sophisticatedstorage:sophisticatedstorage:${ss_version}") {
             transitive = false
         }
     }
