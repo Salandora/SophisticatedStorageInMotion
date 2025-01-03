@@ -61,7 +61,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 	}
 
 	public static boolean areUpgradesVisible(ItemStack storageItem) {
-		return storageItem.getOrDefault(ModDataComponents.UPGRADES_VISIBLE, false);
+		return storageItem.sophisticatedCore_getOrDefault(ModDataComponents.UPGRADES_VISIBLE, false);
 	}
 
 	public void setStorageItemFrom(ItemStack stack) {
@@ -74,7 +74,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 			ItemStack storageItem = storageItemContents.copy();
 			setStorageItem(storageItem);
 			if (isLimitedBarrel(storageItem)) {
-				LimitedBarrelBlock.setupDefaultSettings(getStorageWrapper(), storageWrapper instanceof MovingStorageWrapper movingStorageWrapper ? movingStorageWrapper.getNumberOfInventorySlots() : storageWrapper.getInventoryHandler().getSlots());
+				LimitedBarrelBlock.setupDefaultSettings(getStorageWrapper(), storageWrapper instanceof MovingStorageWrapper movingStorageWrapper ? movingStorageWrapper.getNumberOfInventorySlots() : storageWrapper.getInventoryHandler().getSlotCount());
 			}
 		}
 	}
@@ -102,10 +102,10 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 
 	public void updateStorageWrapper() {
 		ItemStack storageItem = entity.getStorageItem();
-		UUID id = storageItem.get(ModCoreDataComponents.STORAGE_UUID);
+		UUID id = storageItem.sophisticatedCore_get(ModCoreDataComponents.STORAGE_UUID);
 		if (id == null) {
 			id = UUID.randomUUID();
-			storageItem.set(ModCoreDataComponents.STORAGE_UUID, id);
+			storageItem.sophisticatedCore_set(ModCoreDataComponents.STORAGE_UUID, id);
 			setStorageItem(storageItem);
 		}
 
@@ -135,7 +135,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 		}
 
 		ItemStack storageItem = entity.getStorageItem();
-		@Nullable UUID storageId = storageItem.get(ModCoreDataComponents.STORAGE_UUID);
+		@Nullable UUID storageId = storageItem.sophisticatedCore_get(ModCoreDataComponents.STORAGE_UUID);
 		if (storageId == null) {
 			return;
 		}
@@ -201,15 +201,15 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 
 
 	public static boolean isLocked(ItemStack stack) {
-		return stack.getOrDefault(ModDataComponents.LOCKED, false);
+		return stack.sophisticatedCore_getOrDefault(ModDataComponents.LOCKED, false);
 	}
 
 	public static boolean isLockVisible(ItemStack storageItem) {
-		return storageItem.getOrDefault(ModDataComponents.LOCK_VISIBLE, true);
+		return storageItem.sophisticatedCore_getOrDefault(ModDataComponents.LOCK_VISIBLE, true);
 	}
 
 	public static CompoundTag getRenderInfoNbt(ItemStack storageItem) {
-		return storageItem.getOrDefault(ModCoreDataComponents.RENDER_INFO_TAG, CustomData.EMPTY).copyTag();
+		return storageItem.sophisticatedCore_getOrDefault(ModCoreDataComponents.RENDER_INFO_TAG, CustomData.EMPTY).copyTag();
 	}
 
 	public StorageBlockEntity getRenderBlockEntity() {
@@ -301,7 +301,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 	}
 
 	public InteractionResult openContainerMenu(Player player) {
-		player.openMenu(new SophisticatedMenuProvider((w, p, pl) -> createMenu(w, pl), entity.getName(), false), buffer -> buffer.writeInt(entity.getId()));
+		player.sophisticatedCore_openMenu(new SophisticatedMenuProvider((w, p, pl) -> createMenu(w, pl), entity.getName(), false), buffer -> buffer.writeInt(entity.getId()));
 		return player.level().isClientSide ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
 	}
 
@@ -320,7 +320,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 	public void onDestroy() {
 		if (entity.level().getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
 			ItemStack drop = new ItemStack(entity.getDropItem());
-			drop.set(ModDataComponents.STORAGE_ITEM, SimpleItemContent.copyOf(entity.getStorageItem()));
+			drop.sophisticatedCore_set(ModDataComponents.STORAGE_ITEM, SimpleItemContent.copyOf(entity.getStorageItem()));
 			drop.set(DataComponents.CUSTOM_NAME, entity.getCustomName());
 			entity.spawnAtLocation(drop);
 			if (!(entity.getStorageItem().getItem() instanceof ShulkerBoxItem)) {

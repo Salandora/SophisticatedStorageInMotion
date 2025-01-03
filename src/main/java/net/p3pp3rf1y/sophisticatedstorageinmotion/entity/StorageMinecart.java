@@ -94,8 +94,8 @@ public class StorageMinecart extends MinecartChest implements IMovingStorageEnti
 	public ItemStack getPickResult() {
 		ItemStack result = new ItemStack(ModItems.STORAGE_MINECART.get());
 		ItemStack storageItemCopy = getStorageItem().copy();
-		storageItemCopy.remove(ModCoreDataComponents.STORAGE_UUID);
-		result.set(ModDataComponents.STORAGE_ITEM, SimpleItemContent.copyOf(storageItemCopy));
+		storageItemCopy.sophisticatedCore_remove(ModCoreDataComponents.STORAGE_UUID);
+		result.sophisticatedCore_set(ModDataComponents.STORAGE_ITEM, SimpleItemContent.copyOf(storageItemCopy));
 		return result;
 	}
 
@@ -183,7 +183,7 @@ public class StorageMinecart extends MinecartChest implements IMovingStorageEnti
 	public void clearChestVehicleContent() {
 		unpackChestVehicleLootTable(null);
 		InventoryHandler inventoryHandler = getStorageHolder().getStorageWrapper().getInventoryHandler();
-		for (int slot = 0; slot < inventoryHandler.getSlots(); slot++) {
+		for (int slot = 0; slot < inventoryHandler.getSlotCount(); slot++) {
 			inventoryHandler.setStackInSlot(slot, ItemStack.EMPTY);
 		}
 	}

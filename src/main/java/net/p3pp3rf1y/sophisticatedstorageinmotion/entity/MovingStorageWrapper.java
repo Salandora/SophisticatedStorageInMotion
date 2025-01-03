@@ -76,7 +76,7 @@ public class MovingStorageWrapper implements IStorageWrapper {
 
 	public static MovingStorageWrapper fromStack(ItemStack stack, Runnable onContentsChanged, Runnable onStackChanged) {
 		MovingStorageWrapper movingStorageWrapper = StorageWrapperRepository.getStorageWrapper(stack, MovingStorageWrapper.class, s -> new MovingStorageWrapper(s, onContentsChanged, onStackChanged));
-		UUID uuid = stack.get(ModCoreDataComponents.STORAGE_UUID);
+		UUID uuid = stack.sophisticatedCore_get(ModCoreDataComponents.STORAGE_UUID);
 		if (uuid != null) {
 			movingStorageWrapper.setContentsUuid(uuid); //setting here because client side the uuid isn't in contentsnbt before this data is synced from server and it would create a new one otherwise
 		}
@@ -135,12 +135,12 @@ public class MovingStorageWrapper implements IStorageWrapper {
 	}
 
 	public int getNumberOfInventorySlots() {
-		Integer numberOfInventorySlots = storageStack.get(ModCoreDataComponents.NUMBER_OF_INVENTORY_SLOTS);
+		Integer numberOfInventorySlots = storageStack.sophisticatedCore_get(ModCoreDataComponents.NUMBER_OF_INVENTORY_SLOTS);
 		if (numberOfInventorySlots != null) {
 			return numberOfInventorySlots;
 		}
 		numberOfInventorySlots = getDefaultNumberOfInventorySlots();
-		storageStack.set(ModCoreDataComponents.NUMBER_OF_INVENTORY_SLOTS, numberOfInventorySlots);
+		storageStack.sophisticatedCore_set(ModCoreDataComponents.NUMBER_OF_INVENTORY_SLOTS, numberOfInventorySlots);
 		stackChangeHandler.run();
 
 		return numberOfInventorySlots;
@@ -207,12 +207,12 @@ public class MovingStorageWrapper implements IStorageWrapper {
 	}
 
 	public int getNumberOfUpgradeSlots() {
-		@Nullable Integer numberOfUpgradeSlots = storageStack.get(ModCoreDataComponents.NUMBER_OF_UPGRADE_SLOTS);
+		@Nullable Integer numberOfUpgradeSlots = storageStack.sophisticatedCore_get(ModCoreDataComponents.NUMBER_OF_UPGRADE_SLOTS);
 		if (numberOfUpgradeSlots != null) {
 			return numberOfUpgradeSlots;
 		}
 		numberOfUpgradeSlots = getDefaultNumberOfUpgradeSlots();
-		storageStack.set(ModCoreDataComponents.NUMBER_OF_UPGRADE_SLOTS, numberOfUpgradeSlots);
+		storageStack.sophisticatedCore_set(ModCoreDataComponents.NUMBER_OF_UPGRADE_SLOTS, numberOfUpgradeSlots);
 		stackChangeHandler.run();
 
 		return numberOfUpgradeSlots;
@@ -220,7 +220,7 @@ public class MovingStorageWrapper implements IStorageWrapper {
 
 	@Override
 	public Optional<UUID> getContentsUuid() {
-		return Optional.ofNullable(storageStack.get(ModCoreDataComponents.STORAGE_UUID));
+		return Optional.ofNullable(storageStack.sophisticatedCore_get(ModCoreDataComponents.STORAGE_UUID));
 	}
 
 	private CompoundTag getSettingsNbt() {
@@ -257,37 +257,37 @@ public class MovingStorageWrapper implements IStorageWrapper {
 
 	@Override
 	public Optional<Integer> getOpenTabId() {
-		return Optional.ofNullable(storageStack.get(ModCoreDataComponents.OPEN_TAB_ID));
+		return Optional.ofNullable(storageStack.sophisticatedCore_get(ModCoreDataComponents.OPEN_TAB_ID));
 	}
 
 	@Override
 	public void setOpenTabId(int openTabId) {
-		storageStack.set(ModCoreDataComponents.OPEN_TAB_ID, openTabId);
+		storageStack.sophisticatedCore_set(ModCoreDataComponents.OPEN_TAB_ID, openTabId);
 		stackChangeHandler.run();
 	}
 
 	@Override
 	public void removeOpenTabId() {
-		storageStack.remove(ModCoreDataComponents.OPEN_TAB_ID);
+		storageStack.sophisticatedCore_remove(ModCoreDataComponents.OPEN_TAB_ID);
 		stackChangeHandler.run();
 	}
 
 	@Override
 	public void setColors(int mainColor, int accentColor) {
-		storageStack.set(ModCoreDataComponents.MAIN_COLOR, mainColor);
-		storageStack.set(ModCoreDataComponents.ACCENT_COLOR, accentColor);
+		storageStack.sophisticatedCore_set(ModCoreDataComponents.MAIN_COLOR, mainColor);
+		storageStack.sophisticatedCore_set(ModCoreDataComponents.ACCENT_COLOR, accentColor);
 		stackChangeHandler.run();
 	}
 
 	@Override
 	public void setSortBy(SortBy sortBy) {
-		storageStack.set(ModCoreDataComponents.SORT_BY, sortBy);
+		storageStack.sophisticatedCore_set(ModCoreDataComponents.SORT_BY, sortBy);
 		stackChangeHandler.run();
 	}
 
 	@Override
 	public SortBy getSortBy() {
-		return storageStack.getOrDefault(ModCoreDataComponents.SORT_BY, SortBy.NAME);
+		return storageStack.sophisticatedCore_getOrDefault(ModCoreDataComponents.SORT_BY, SortBy.NAME);
 	}
 
 	@Override
@@ -351,7 +351,7 @@ public class MovingStorageWrapper implements IStorageWrapper {
 	}
 
 	public void setContentsUuid(UUID contentsUuid) {
-		storageStack.set(ModCoreDataComponents.STORAGE_UUID, contentsUuid);
+		storageStack.sophisticatedCore_set(ModCoreDataComponents.STORAGE_UUID, contentsUuid);
 		onContentsNbtUpdated();
 	}
 
@@ -406,12 +406,12 @@ public class MovingStorageWrapper implements IStorageWrapper {
 	}
 
 	public void setNumberOfInventorySlots(int numberOfInventorySlots) {
-		storageStack.set(ModCoreDataComponents.NUMBER_OF_INVENTORY_SLOTS, numberOfInventorySlots);
+		storageStack.sophisticatedCore_set(ModCoreDataComponents.NUMBER_OF_INVENTORY_SLOTS, numberOfInventorySlots);
 		stackChangeHandler.run();
 	}
 
 	public void setNumberOfUpgradeSlots(int numberOfUpgradeSlots) {
-		storageStack.set(ModCoreDataComponents.NUMBER_OF_UPGRADE_SLOTS, numberOfUpgradeSlots);
+		storageStack.sophisticatedCore_set(ModCoreDataComponents.NUMBER_OF_UPGRADE_SLOTS, numberOfUpgradeSlots);
 		stackChangeHandler.run();
 	}
 
@@ -438,7 +438,7 @@ public class MovingStorageWrapper implements IStorageWrapper {
 
 		@Override
 		protected void serializeRenderInfo(CompoundTag renderInfo) {
-			MovingStorageWrapper.this.storageStack.set(ModCoreDataComponents.RENDER_INFO_TAG, CustomData.of(renderInfo));
+			MovingStorageWrapper.this.storageStack.sophisticatedCore_set(ModCoreDataComponents.RENDER_INFO_TAG, CustomData.of(renderInfo));
 		}
 
 		@Override

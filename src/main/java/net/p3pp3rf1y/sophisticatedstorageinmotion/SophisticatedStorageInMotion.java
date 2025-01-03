@@ -1,36 +1,28 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion;
 
+import net.fabricmc.api.ModInitializer;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.p3pp3rf1y.sophisticatedstorageinmotion.client.ClientEventHandler;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.common.CommonEventHandler;
-import net.p3pp3rf1y.sophisticatedstorageinmotion.data.DataGenerators;
-import net.p3pp3rf1y.sophisticatedstorageinmotion.init.*;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import net.p3pp3rf1y.sophisticatedstorageinmotion.init.ModDataComponents;
+import net.p3pp3rf1y.sophisticatedstorageinmotion.init.ModEntities;
+import net.p3pp3rf1y.sophisticatedstorageinmotion.init.ModItems;
+import net.p3pp3rf1y.sophisticatedstorageinmotion.init.ModPayloads;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Mod(SophisticatedStorageInMotion.MOD_ID)
-public class SophisticatedStorageInMotion {
+public class SophisticatedStorageInMotion implements ModInitializer {
 	public static final String MOD_ID = "sophisticatedstorageinmotion";
-	public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
+	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-	@SuppressWarnings("java:S1118") //needs to be public for mod to work
-	public SophisticatedStorageInMotion(IEventBus modBus, Dist dist, ModContainer container) {
-		ModItems.registerHandlers(modBus);
-		ModEntities.registerHandlers(modBus);
-		ModDataComponents.register(modBus);
+	@Override
+	public void onInitialize() {
+		ModItems.registerHandlers();
+		ModEntities.registerHandlers();
+		ModDataComponents.register();
 		CommonEventHandler.registerHandlers();
-		if (dist == Dist.CLIENT) {
-			ClientEventHandler.registerHandlers(modBus);
-			ModEntitiesClient.registerHandlers(modBus); //TODO move this to client event handler
-		}
-		modBus.addListener(ModPayloads::registerPayloads);
-		modBus.addListener(DataGenerators::gatherData);
-		modBus.addListener(SophisticatedStorageInMotion::setup);
+		ModPayloads.registerPayloads();
+
+		SophisticatedStorageInMotion.setup();
 	}
 
 	public static ResourceLocation getRL(String regName) {
@@ -41,7 +33,7 @@ public class SophisticatedStorageInMotion {
 		return MOD_ID + ":" + regName;
 	}
 
-	private static void setup(FMLCommonSetupEvent event) {
-		event.enqueueWork(ModItems::registerDispenseBehavior);
+	private static void setup() {
+		ModItems.registerDispenseBehavior();
 	}
 }

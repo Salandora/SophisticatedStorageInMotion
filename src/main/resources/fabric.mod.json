@@ -1,0 +1,57 @@
+{
+    "schemaVersion": 1,
+    "id": "${mod_id}",
+    "version": "${mod_version}",
+    "name": "${mod_name}",
+    "description": "${mod_description}",
+    "license": "${mod_license}",
+    "icon": "${mod_logo_file}",
+    "authors": ["mod_authors"],
+    "contact": {
+        "homepage": "${mod_display_url}",
+        "issues": "${mod_issue_tracker_url}",
+        "sources": "${mod_sources_url}"
+    },
+    "environment": "*",
+    "entrypoints": {
+        "main": [
+            "net.p3pp3rf1y.sophisticatedstorageinmotion.SophisticatedStorageInMotion"
+        ],
+        "client": [
+            "net.p3pp3rf1y.sophisticatedstorageinmotion.client.SophisticatedStorageInMotionClient"
+        ],
+        "fabric-datagen": [
+            "net.p3pp3rf1y.sophisticatedstorageinmotion.data.DataGenerators"
+        ],
+        "jei_mod_plugin": [
+            "net.p3pp3rf1y.sophisticatedstorageinmotion.compat.jei.StorageInMotionPlugin"
+        ]
+    },
+    "mixins": [
+        "sophisticatedstorageinmotion.mixins.json"
+    ],
+    "accessWidener": "sophisticatedstorageinmotion.accesswidener",
+    "depends": {
+        "fabricloader": ">=${loader_version}",
+        "fabric-api": ">=${fabric_version}",
+        "minecraft": "${minecraft_version}",
+        "sophisticatedcore": "${sc_version}",
+        "sophisticatedstorage": "${ss_version}"
+    },
+    "suggests": {
+        "modmenu": "*"
+    },
+    "custom": {
+        "loom:injected_interfaces": {
+            "net/minecraft/class_1856": ["net/p3pp3rf1y/sophisticatedstorageinmotion/extensions/SophisticatedIngredient"],
+            "net/minecraft/class_2241": ["net/p3pp3rf1y/sophisticatedstorageinmotion/extensions/SophisticatedBaseRailBlock"]
+        },
+        "modmenu": {
+            "parent": {
+                "id": "sophisticatedmods",
+                "name": "Sophisticated Mods",
+                "description": "Group of P3pp3rf1y's Sophisticated Mods"
+            }
+        }
+    }
+}

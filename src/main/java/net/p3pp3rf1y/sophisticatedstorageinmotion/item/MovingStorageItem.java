@@ -30,36 +30,36 @@ public abstract class MovingStorageItem extends ItemBase {
 	}
 
 	public static void setStorageItem(ItemStack storageItem, ItemStack movingStorageItem) {
-		movingStorageItem.set(ModDataComponents.STORAGE_ITEM, SimpleItemContent.copyOf(storageItem));
+		movingStorageItem.sophisticatedCore_set(ModDataComponents.STORAGE_ITEM, SimpleItemContent.copyOf(storageItem));
 	}
 
 	public static Optional<Item> getStorageItemType(ItemStack stack) {
-		SimpleItemContent storageItemContents = stack.get(ModDataComponents.STORAGE_ITEM);
+		SimpleItemContent storageItemContents = stack.sophisticatedCore_get(ModDataComponents.STORAGE_ITEM);
 		return storageItemContents == null ? Optional.empty() : Optional.of(storageItemContents.getItem());
 	}
 
 	public static Optional<WoodType> getStorageItemWoodType(ItemStack stack) {
-		SimpleItemContent storageItemContents = stack.get(ModDataComponents.STORAGE_ITEM);
+		SimpleItemContent storageItemContents = stack.sophisticatedCore_get(ModDataComponents.STORAGE_ITEM);
 		return storageItemContents == null ? Optional.empty() : WoodStorageBlockItem.getWoodType(storageItemContents);
 	}
 
 	public static Optional<Integer> getStorageItemMainColor(ItemStack stack) {
-		SimpleItemContent storageItemContents = stack.get(ModDataComponents.STORAGE_ITEM);
+		SimpleItemContent storageItemContents = stack.sophisticatedCore_get(ModDataComponents.STORAGE_ITEM);
 		return storageItemContents == null ? Optional.empty() : StorageBlockItem.getMainColorFromComponentHolder(storageItemContents);
 	}
 
 	public static Optional<Integer> getStorageItemAccentColor(ItemStack stack) {
-		SimpleItemContent storageItemContents = stack.get(ModDataComponents.STORAGE_ITEM);
+		SimpleItemContent storageItemContents = stack.sophisticatedCore_get(ModDataComponents.STORAGE_ITEM);
 		return storageItemContents == null ? Optional.empty() : StorageBlockItem.getAccentColorFromComponentHolder(storageItemContents);
 	}
 
 	public static boolean isStorageItemFlatTopBarrel(ItemStack stack) {
-		SimpleItemContent storageItemContents = stack.get(ModDataComponents.STORAGE_ITEM);
+		SimpleItemContent storageItemContents = stack.sophisticatedCore_get(ModDataComponents.STORAGE_ITEM);
 		return storageItemContents != null && BarrelBlockItem.isFlatTop(storageItemContents);
 	}
 
 	public static ItemStack getStorageItem(ItemStack stack) {
-		return stack.getOrDefault(ModDataComponents.STORAGE_ITEM, SimpleItemContent.EMPTY).copy();
+		return stack.sophisticatedCore_getOrDefault(ModDataComponents.STORAGE_ITEM, SimpleItemContent.EMPTY).copy();
 	}
 
 	public abstract ItemStack getUncraftRemainingItem();
@@ -80,7 +80,7 @@ public abstract class MovingStorageItem extends ItemBase {
 				migratedContentsNbt.put(StorageWrapper.CONTENTS_TAG, contentsNbt.getCompound(StorageWrapper.CONTENTS_TAG));
 				migratedContentsNbt.put(StorageWrapper.SETTINGS_TAG, contentsNbt.getCompound(StorageWrapper.SETTINGS_TAG));
 				MovingStorageData.get(id).setContents(migratedContentsNbt);
-				storageItem.set(ModCoreDataComponents.RENDER_INFO_TAG, CustomData.of(contentsNbt.getCompound(StorageWrapper.RENDER_INFO_TAG)));
+				storageItem.sophisticatedCore_set(ModCoreDataComponents.RENDER_INFO_TAG, CustomData.of(contentsNbt.getCompound(StorageWrapper.RENDER_INFO_TAG)));
 				MovingStorageItem.setStorageItem(storageItem, stack);
 				itemContentsStorage.removeStorageContents(id);
 			});
@@ -114,7 +114,7 @@ public abstract class MovingStorageItem extends ItemBase {
 
 	@Override
 	public Component getName(ItemStack stack) {
-		SimpleItemContent storageItemContent = stack.get(ModDataComponents.STORAGE_ITEM);
+		SimpleItemContent storageItemContent = stack.sophisticatedCore_get(ModDataComponents.STORAGE_ITEM);
 		return storageItemContent != null ? Component.translatable(getDescriptionId(), storageItemContent.copy().getHoverName()) : super.getName(stack);
 	}
 }

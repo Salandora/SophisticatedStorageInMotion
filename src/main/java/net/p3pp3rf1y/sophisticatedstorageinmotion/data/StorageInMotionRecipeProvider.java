@@ -1,5 +1,7 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.data;
 
+import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.recipes.RecipeOutput;
@@ -15,13 +17,13 @@ import net.p3pp3rf1y.sophisticatedstorageinmotion.init.ModItems;
 
 import java.util.concurrent.CompletableFuture;
 
-public class StorageInMotionRecipeProvider extends RecipeProvider {
-	public StorageInMotionRecipeProvider(DataGenerator generator, CompletableFuture<HolderLookup.Provider> registries) {
-		super(generator.getPackOutput(), registries);
+public class StorageInMotionRecipeProvider extends FabricRecipeProvider {
+	public StorageInMotionRecipeProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
+		super(output, registriesFuture);
 	}
 
 	@Override
-	protected void buildRecipes(RecipeOutput recipeOutput) {
+	public void buildRecipes(RecipeOutput recipeOutput) {
 		SpecialRecipeBuilder.special(UncraftMovingStorageRecipe::new).save(recipeOutput, SophisticatedStorageInMotion.getRegistryName("uncraft_moving_storage"));
 
 		ShapelessBasedRecipeBuilder.shapeless(ModItems.STORAGE_MINECART.get(), MovingStorageFromStorageRecipe::new)
