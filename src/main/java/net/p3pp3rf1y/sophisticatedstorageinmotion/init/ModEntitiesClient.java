@@ -15,13 +15,13 @@ public class ModEntitiesClient {
 	}
 
 	private static void registerEntityRenderers() {
-		EntityRendererRegistry.register(ModEntities.STORAGE_MINECART.get(), StorageMinecartRenderer::new);
+		EntityRendererRegistry.register(ModEntities.STORAGE_MINECART, StorageMinecartRenderer::new);
 	}
 
 	private static void onMenuScreenRegister() {
-		MenuScreens.register(ModEntities.MOVING_STORAGE_CONTAINER_TYPE.get(), MovingStorageScreen::constructScreen);
-		MenuScreens.register(ModEntities.MOVING_STORAGE_SETTINGS_CONTAINER_TYPE.get(), MovingStorageSettingsScreen::constructScreen);
-		MenuScreens.register(ModEntities.MOVING_LIMITED_BARREL_CONTAINER_TYPE.get(), MovingLimitedBarrelScreen::new);
-		MenuScreens.register(ModEntities.MOVING_LIMITED_BARREL_SETTINGS_CONTAINER_TYPE.get(), MovingLimitedBarrelSettingsScreen::new);
+		MenuScreens.register(ModEntities.MOVING_STORAGE_CONTAINER_TYPE, MovingStorageScreen::constructScreen);
+		MenuScreens.register(ModEntities.MOVING_STORAGE_SETTINGS_CONTAINER_TYPE, MovingStorageSettingsScreen::constructScreen);
+		MenuScreens.register(ModEntities.MOVING_LIMITED_BARREL_CONTAINER_TYPE, MovingLimitedBarrelScreen::new);
+		MenuScreens.register(ModEntities.MOVING_LIMITED_BARREL_SETTINGS_CONTAINER_TYPE, MovingLimitedBarrelSettingsScreen::new);
 	}
 }

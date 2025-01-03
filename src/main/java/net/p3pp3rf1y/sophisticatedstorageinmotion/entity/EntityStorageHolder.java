@@ -3,19 +3,18 @@ package net.p3pp3rf1y.sophisticatedstorageinmotion.entity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.piglin.PiglinAi;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.properties.WoodType;
@@ -24,15 +23,13 @@ import net.minecraft.world.phys.AABB;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.api.IUpgradeRenderer;
 import net.p3pp3rf1y.sophisticatedcore.client.render.UpgradeRenderRegistry;
-import net.p3pp3rf1y.sophisticatedcore.common.gui.SophisticatedMenuProvider;
-import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.IUpgradeRenderData;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.UpgradeRenderDataType;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ITickableUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
+import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
-import net.p3pp3rf1y.sophisticatedcore.util.SimpleItemContent;
 import net.p3pp3rf1y.sophisticatedstorage.block.*;
 import net.p3pp3rf1y.sophisticatedstorage.init.ModBlocks;
 import net.p3pp3rf1y.sophisticatedstorage.item.BarrelBlockItem;
@@ -41,7 +38,6 @@ import net.p3pp3rf1y.sophisticatedstorage.item.StorageBlockItem;
 import net.p3pp3rf1y.sophisticatedstorage.item.WoodStorageBlockItem;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.common.gui.MovingLimitedBarrelContainerMenu;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.common.gui.MovingStorageContainerMenu;
-import net.p3pp3rf1y.sophisticatedstorageinmotion.init.ModDataComponents;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -49,6 +45,11 @@ import java.util.Map;
 import java.util.UUID;
 
 public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
+	public static final String UPGRADES_VISIBLE_TAG = "upgradesVisible";
+	public static final String STORAGE_ITEM_TAG = "storageItem";
+	public static final String SORT_BY_TAG = "sortBy";
+	private static final String LOCKED_TAG = "locked";
+	private static final String LOCK_VISIBLE_TAG = "lockVisible";
 	private final T entity;
 
 	@Nullable
@@ -61,17 +62,16 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 	}
 
 	public static boolean areUpgradesVisible(ItemStack storageItem) {
-		return storageItem.sophisticatedCore_getOrDefault(ModDataComponents.UPGRADES_VISIBLE, false);
+		return NBTHelper.getBoolean(storageItem, UPGRADES_VISIBLE_TAG).orElse(false);
 	}
 
 	public void setStorageItemFrom(ItemStack stack) {
-		SimpleItemContent storageItemContents = stack.get(ModDataComponents.STORAGE_ITEM.get());
-		if (storageItemContents == null) {
-			ItemStack barrel = new ItemStack(ModBlocks.BARREL_ITEM.get());
+		ItemStack storageItem = NBTHelper.getCompound(stack, STORAGE_ITEM_TAG).map(ItemStack::of).orElse(ItemStack.EMPTY);
+		if (storageItem.isEmpty()) {
+			ItemStack barrel = new ItemStack(ModBlocks.BARREL_ITEM);
 			WoodStorageBlockItem.setWoodType(barrel, WoodType.SPRUCE);
 			setStorageItem(barrel);
 		} else {
-			ItemStack storageItem = storageItemContents.copy();
 			setStorageItem(storageItem);
 			if (isLimitedBarrel(storageItem)) {
 				LimitedBarrelBlock.setupDefaultSettings(getStorageWrapper(), storageWrapper instanceof MovingStorageWrapper movingStorageWrapper ? movingStorageWrapper.getNumberOfInventorySlots() : storageWrapper.getInventoryHandler().getSlotCount());
@@ -79,18 +79,18 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 		}
 	}
 
-	public CompoundTag saveData(HolderLookup.Provider registries) {
+	public CompoundTag saveData() {
 		CompoundTag ret = new CompoundTag();
 		ItemStack storageItem = entity.getStorageItem();
 		if (!storageItem.isEmpty()) {
-			ret.put("storageItem", storageItem.save(registries, new CompoundTag()));
+			ret.put("storageItem", storageItem.save(new CompoundTag()));
 		}
 		return ret;
 	}
 
-	public void readData(HolderLookup.Provider registries, CompoundTag tag) {
+	public void readData(CompoundTag tag) {
 		if (tag.contains("storageItem")) {
-			setStorageItem(ItemStack.parseOptional(registries, tag.getCompound("storageItem")));
+			setStorageItem(ItemStack.of(tag.getCompound("storageItem")));
 		}
 	}
 
@@ -102,10 +102,8 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 
 	public void updateStorageWrapper() {
 		ItemStack storageItem = entity.getStorageItem();
-		UUID id = storageItem.sophisticatedCore_get(ModCoreDataComponents.STORAGE_UUID);
-		if (id == null) {
-			id = UUID.randomUUID();
-			storageItem.sophisticatedCore_set(ModCoreDataComponents.STORAGE_UUID, id);
+		if (!NBTHelper.hasTag(storageItem, StorageWrapper.UUID_TAG)) {
+			NBTHelper.setUniqueId(storageItem, StorageWrapper.UUID_TAG, UUID.randomUUID());
 			setStorageItem(storageItem);
 		}
 
@@ -135,11 +133,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 		}
 
 		ItemStack storageItem = entity.getStorageItem();
-		@Nullable UUID storageId = storageItem.sophisticatedCore_get(ModCoreDataComponents.STORAGE_UUID);
-		if (storageId == null) {
-			return;
-		}
-		MovingStorageData.get(storageId).setDirty();
+		NBTHelper.getUniqueId(storageItem, StorageWrapper.UUID_TAG).ifPresent(uuid -> MovingStorageData.get(uuid).setDirty());
 	}
 
 	public void startOpen(Player player) {
@@ -171,9 +165,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 		if (Minecraft.getInstance().isPaused()) {
 			return;
 		}
-		renderInfo.getUpgradeRenderData().forEach((type, data) -> UpgradeRenderRegistry.getUpgradeRenderer(type).ifPresent(renderer -> {
-			renderUpgrade(renderer, level, rand, type, data);
-		}));
+		renderInfo.getUpgradeRenderData().forEach((type, data) -> UpgradeRenderRegistry.getUpgradeRenderer(type).ifPresent(renderer -> renderUpgrade(renderer, level, rand, type, data)));
 	}
 
 	private <T extends IUpgradeRenderData> void renderUpgrade(IUpgradeRenderer<T> renderer, Level level, RandomSource rand, UpgradeRenderDataType<?> type, IUpgradeRenderData data) {
@@ -201,15 +193,15 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 
 
 	public static boolean isLocked(ItemStack stack) {
-		return stack.sophisticatedCore_getOrDefault(ModDataComponents.LOCKED, false);
+		return NBTHelper.getBoolean(stack, LOCKED_TAG).orElse(false);
 	}
 
 	public static boolean isLockVisible(ItemStack storageItem) {
-		return storageItem.sophisticatedCore_getOrDefault(ModDataComponents.LOCK_VISIBLE, true);
+		return NBTHelper.getBoolean(storageItem, LOCK_VISIBLE_TAG).orElse(true);
 	}
 
 	public static CompoundTag getRenderInfoNbt(ItemStack storageItem) {
-		return storageItem.sophisticatedCore_getOrDefault(ModCoreDataComponents.RENDER_INFO_TAG, CustomData.EMPTY).copyTag();
+		return NBTHelper.getCompound(storageItem, StorageWrapper.RENDER_INFO_TAG).orElse(new CompoundTag());
 	}
 
 	public StorageBlockEntity getRenderBlockEntity() {
@@ -288,7 +280,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 			}
 
 			if (renderBlockEntity == null) {
-				renderBlockEntity = new ChestBlockEntity(BlockPos.ZERO, ModBlocks.CHEST.get().defaultBlockState());
+				renderBlockEntity = new ChestBlockEntity(BlockPos.ZERO, ModBlocks.CHEST.defaultBlockState());
 			}
 			setRenderBlockEntity(renderBlockEntity);
 		}
@@ -300,8 +292,9 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 		storageWrapper = NoopStorageWrapper.INSTANCE;
 	}
 
-	public InteractionResult openContainerMenu(Player player) {
-		player.sophisticatedCore_openMenu(new SophisticatedMenuProvider((w, p, pl) -> createMenu(w, pl), entity.getName(), false), buffer -> buffer.writeInt(entity.getId()));
+	public InteractionResult openContainerMenu(ServerPlayer player) {
+		// TODO: Fix this
+		NetworkHooks.openScreen(player, new SimpleMenuProvider((w, p, pl) -> createMenu(w, pl), entity.getName()), buffer -> buffer.writeInt(entity.getId()));
 		return player.level().isClientSide ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
 	}
 
@@ -320,8 +313,8 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 	public void onDestroy() {
 		if (entity.level().getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
 			ItemStack drop = new ItemStack(entity.getDropItem());
-			drop.sophisticatedCore_set(ModDataComponents.STORAGE_ITEM, SimpleItemContent.copyOf(entity.getStorageItem()));
-			drop.set(DataComponents.CUSTOM_NAME, entity.getCustomName());
+			drop.getOrCreateTag().put(STORAGE_ITEM_TAG, entity.getStorageItem().save(new CompoundTag()));
+			drop.setHoverName(entity.getCustomName());
 			entity.spawnAtLocation(drop);
 			if (!(entity.getStorageItem().getItem() instanceof ShulkerBoxItem)) {
 				dropAllItems();

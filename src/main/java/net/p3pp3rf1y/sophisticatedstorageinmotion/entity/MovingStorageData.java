@@ -1,6 +1,5 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.entity;
 
-import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -34,20 +33,20 @@ public class MovingStorageData extends SavedData {
 				ServerLevel overworld = server.getLevel(Level.OVERWORLD);
 				//noinspection ConstantConditions - by this time overworld is loaded
 				DimensionDataStorage storage = overworld.getDataStorage();
-				return storage.computeIfAbsent(new Factory<>(MovingStorageData::new, MovingStorageData::load, null), SAVED_DATA_PREFIX + storageId);
+				return storage.computeIfAbsent(MovingStorageData::load, MovingStorageData::new, SAVED_DATA_PREFIX + storageId);
 			}
 		}
 		return clientStorageCopy.computeIfAbsent(storageId, id -> new MovingStorageData());
 	}
 
-	public static MovingStorageData load(CompoundTag nbt, HolderLookup.Provider registries) {
+	public static MovingStorageData load(CompoundTag nbt) {
 		MovingStorageData storageData = new MovingStorageData();
 		storageData.movingStorageContents = nbt;
 		return storageData;
 	}
 
 	@Override
-	public CompoundTag save(CompoundTag compound, HolderLookup.Provider registries) {
+	public CompoundTag save(CompoundTag compound) {
 		if (movingStorageContents != null) {
 			return movingStorageContents;
 		}
@@ -60,7 +59,7 @@ public class MovingStorageData extends SavedData {
 	}
 
 	@Override
-	public void save(File file, HolderLookup.Provider registries) {
+	public void save(File file) {
 		if (toRemove) {
 			file.delete();
 		} else {
@@ -69,7 +68,7 @@ public class MovingStorageData extends SavedData {
 			} catch (IOException e) {
 				SophisticatedStorageInMotion.LOGGER.error("Failed to create directories for moving storage data", e);
 			}
-			super.save(file, registries);
+			super.save(file);
 		}
 	}
 

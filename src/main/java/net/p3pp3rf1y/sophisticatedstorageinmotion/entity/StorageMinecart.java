@@ -1,15 +1,14 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.entity;
 
-import net.minecraft.core.HolderLookup;
+import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
@@ -23,11 +22,11 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
+import net.p3pp3rf1y.porting_lib.base.util.LazyOptional;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
-import net.p3pp3rf1y.sophisticatedcore.util.SimpleItemContent;
+import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
+import net.p3pp3rf1y.sophisticatedstorage.block.StorageWrapper;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.client.gui.StorageInMotionTranslationHelper;
-import net.p3pp3rf1y.sophisticatedstorageinmotion.init.ModDataComponents;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.init.ModEntities;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.init.ModItems;
 import org.jetbrains.annotations.Nullable;
@@ -40,20 +39,22 @@ public class StorageMinecart extends MinecartChest implements IMovingStorageEnti
 
 	private final EntityStorageHolder<StorageMinecart> entityStorageHolder;
 
+	private final LazyOptional<?> itemHandler = LazyOptional.of(() -> getStorageHolder().getStorageWrapper().getInventoryForInputOutput());
+
 	public StorageMinecart(EntityType<StorageMinecart> entityType, Level level) {
 		super(entityType, level);
 		entityStorageHolder = new EntityStorageHolder<>(this);
 	}
 
 	private StorageMinecart(Level level) {
-		this(ModEntities.STORAGE_MINECART.get(), level);
+		this(ModEntities.STORAGE_MINECART, level);
 	}
 
 	@Override
-	protected void defineSynchedData(SynchedEntityData.Builder builder) {
-		super.defineSynchedData(builder);
-		builder.define(DATA_STORAGE_ITEM, ItemStack.EMPTY);
-		builder.define(DATA_CUSTOM_NAME, Optional.empty());
+	protected void defineSynchedData() {
+		super.defineSynchedData();
+		entityData.define(DATA_STORAGE_ITEM, ItemStack.EMPTY);
+		entityData.define(DATA_CUSTOM_NAME, Optional.empty());
 	}
 
 	@Override
@@ -87,28 +88,28 @@ public class StorageMinecart extends MinecartChest implements IMovingStorageEnti
 
 	@Override
 	public Item getDropItem() {
-		return ModItems.STORAGE_MINECART.get();
+		return ModItems.STORAGE_MINECART;
 	}
 
 	@Override
 	public ItemStack getPickResult() {
-		ItemStack result = new ItemStack(ModItems.STORAGE_MINECART.get());
+		ItemStack result = new ItemStack(ModItems.STORAGE_MINECART);
 		ItemStack storageItemCopy = getStorageItem().copy();
-		storageItemCopy.sophisticatedCore_remove(ModCoreDataComponents.STORAGE_UUID);
-		result.sophisticatedCore_set(ModDataComponents.STORAGE_ITEM, SimpleItemContent.copyOf(storageItemCopy));
+		NBTHelper.removeTag(storageItemCopy, StorageWrapper.UUID_TAG);
+		result.getOrCreateTag().put(EntityStorageHolder.STORAGE_ITEM_TAG, storageItemCopy.save(new CompoundTag()));
 		return result;
 	}
 
 	@Override
 	protected void addAdditionalSaveData(CompoundTag tag) {
 		super.addAdditionalSaveData(tag);
-		tag.put("storageHolder", entityStorageHolder.saveData(level().registryAccess()));
+		tag.put("storageHolder", entityStorageHolder.saveData());
 	}
 
 	@Override
 	protected void readAdditionalSaveData(CompoundTag tag) {
 		super.readAdditionalSaveData(tag);
-		entityStorageHolder.readData(level().registryAccess(), tag.getCompound("storageHolder"));
+		entityStorageHolder.readData(tag.getCompound("storageHolder"));
 	}
 
 	@Override
@@ -137,7 +138,11 @@ public class StorageMinecart extends MinecartChest implements IMovingStorageEnti
 
 	@Override
 	public InteractionResult interact(Player player, InteractionHand hand) {
-		return getStorageHolder().openContainerMenu(player);
+		if (player instanceof ServerPlayer serverPlayer) {
+			return getStorageHolder().openContainerMenu(serverPlayer);
+		}
+
+		return InteractionResult.SUCCESS;
 	}
 
 	@Override
@@ -146,8 +151,22 @@ public class StorageMinecart extends MinecartChest implements IMovingStorageEnti
 	}
 
 	@Override
+	public void remove(RemovalReason pReason) {
+		//overriden to prevent default minecart logic from using container overrides to drop items when in some cases they are not supposed to be dropped
+		setRemoved(pReason);
+		invalidateCaps();
+	}
+
+
+	@Override
+	public void invalidateCaps() {
+		super.invalidateCaps();
+		itemHandler.invalidate();
+	}
+
+	@Override
 	public int getContainerSize() {
-		return 0;
+		return getStorageHolder().getStorageWrapper().getInventoryHandler().getSlots();
 	}
 
 	@Override
@@ -156,9 +175,9 @@ public class StorageMinecart extends MinecartChest implements IMovingStorageEnti
 	}
 
 	@Override
-	public void addChestVehicleSaveData(CompoundTag tag, HolderLookup.Provider levelRegistry) {
+	public void addChestVehicleSaveData(CompoundTag tag) {
 		if (getLootTable() != null) {
-			tag.putString("LootTable", this.getLootTable().location().toString());
+			tag.putString("LootTable", this.getLootTable().toString());
 			if (getLootTableSeed() != 0L) {
 				tag.putLong("LootTableSeed", this.getLootTableSeed());
 			}
@@ -166,10 +185,10 @@ public class StorageMinecart extends MinecartChest implements IMovingStorageEnti
 	}
 
 	@Override
-	public void readChestVehicleSaveData(CompoundTag tag, HolderLookup.Provider levelRegistry) {
+	public void readChestVehicleSaveData(CompoundTag tag) {
 		clearItemStacks();
 		if (tag.contains("LootTable", 8)) {
-			setLootTable(ResourceKey.create(Registries.LOOT_TABLE, ResourceLocation.parse(tag.getString("LootTable"))));
+			setLootTable(ResourceLocation.tryParse(tag.getString("LootTable")));
 			setLootTableSeed(tag.getLong("LootTableSeed"));
 		}
 	}
@@ -212,5 +231,13 @@ public class StorageMinecart extends MinecartChest implements IMovingStorageEnti
 	@Override
 	public SlotAccess getChestVehicleSlot(int index) {
 		return SlotAccess.NULL;
+	}
+
+	@Override
+	public <T> LazyOptional<T> getCapability(Capability<T> capability, @Nullable Direction facing) {
+		if (this.isAlive() && capability == ForgeCapabilities.ITEM_HANDLER) {
+			return itemHandler.cast();
+		}
+		return super.getCapability(capability, facing);
 	}
 }

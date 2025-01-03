@@ -10,7 +10,7 @@ import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
-import net.p3pp3rf1y.sophisticatedcore.compat.jei.ClientRecipeHelper;
+import net.p3pp3rf1y.sophisticatedcore.compat.common.ClientRecipeHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.ItemBase;
 import net.p3pp3rf1y.sophisticatedstorage.item.StorageBlockItem;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.SophisticatedStorageInMotion;
@@ -22,36 +22,15 @@ import java.util.*;
 public class AssembleRecipesMaker {
 	private AssembleRecipesMaker() {}
 
-	public static List<RecipeHolder<CraftingRecipe>> getShapelessCraftingRecipes(ItemBase item) {
-		RecipeConstructor<MovingStorageFromStorageRecipe> constructRecipe = (originalRecipe, ingredients, result) -> new ShapelessRecipe("", CraftingBookCategory.MISC, result, ingredients);
-		return getCraftingRecipes(item, constructRecipe, MovingStorageFromStorageRecipe.class);
+	public static List<CraftingRecipe> getShapelessCraftingRecipes(ItemBase item) {
+		RecipeConstructor<MovingStorageFromStorageRecipe> constructRecipe = (originalRecipe, id, ingredients, result) -> new ShapelessRecipe(id, "", CraftingBookCategory.MISC, result, ingredients);
+		return getCraftingRecipes(constructRecipe, MovingStorageFromStorageRecipe.REGISTERED_RECIPES, MovingStorageFromStorageRecipe.class);
 	}
 
 	@NotNull
-	private static <T extends CraftingRecipe> List<RecipeHolder<CraftingRecipe>> getCraftingRecipes(ItemBase item, RecipeConstructor<T> constructRecipe, Class<T> originalRecipeClass) {
-		return ClientRecipeHelper.transformAllRecipesOfTypeIntoMultiple(RecipeType.CRAFTING, originalRecipeClass, recipe -> {
-			List<RecipeHolder<CraftingRecipe>> itemGroupRecipes = new ArrayList<>();
-
-/*			List<ItemStack> results = new ArrayList<>();
-			item.addCreativeTabItems(results::add);
-
-			for (ItemStack result : results) {
-				ItemStack storageItem = StorageMinecartItem.getStorageItem(result);
-
-				NonNullList<Ingredient> ingredients = recipe.getIngredients();
-				NonNullList<Ingredient> ingredientsCopy = NonNullList.createWithCapacity(ingredients.size());
-				int i = 0;
-				for (Ingredient ingredient : ingredients) {
-					if (ingredient.getValues().length > 0 && ingredient.getValues()[0] instanceof Ingredient.ItemValue itemValue && itemValue.item().is(ModBlocks.ALL_STORAGE_TAG)) {
-						ingredientsCopy.add(i, Ingredient.of(storageItem));
-					} else {
-						ingredientsCopy.add(i, ingredient);
-					}
-					i++;
-				}
-				ResourceLocation id = ResourceLocation.fromNamespaceAndPath(SophisticatedStorageInMotion.MOD_ID, "assemble_moving_storage_" + BuiltInRegistries.ITEM.getKey(result.getItem()).getPath() + result.getComponentsPatch().toString().toLowerCase(Locale.ROOT).replaceAll("[{\",}:>=@\\[\\]\\s]", "_"));
-				itemGroupRecipes.add(new RecipeHolder<>(id, constructRecipe.construct(recipe, ingredientsCopy, result)));
-			}*/
+	private static <T extends CraftingRecipe> List<CraftingRecipe> getCraftingRecipes(RecipeConstructor<T> constructRecipe, Set<ResourceLocation> registeredRecipes, Class<T> originalRecipeClass) {
+		return ClientRecipeHelper.getAndTransformAvailableItemGroupRecipes(registeredRecipes, originalRecipeClass, recipe -> {
+			List<CraftingRecipe> itemGroupRecipes = new ArrayList<>();
 
 			int storageIngredientIndex = -1;
 
@@ -71,14 +50,14 @@ public class AssembleRecipesMaker {
 			List<ItemStack> storageItems = new ArrayList<>();
 			int i = 0;
 			for (Ingredient ingredient : ingredients) {
-				if (ingredient.sophisticated_getValues().length > 0 && ingredient.sophisticated_getValues()[0] instanceof Ingredient.ItemValue itemValue && itemValue.item().getItem() instanceof StorageBlockItem) {
+				ItemStack[] ingredientItems = ingredient.getItems();
+				if (ingredientItems.length > 0 && ingredientItems[0].getItem() instanceof StorageBlockItem) {
 					storageItems = expandStorageItems(ingredient.getItems());
 					storageIngredientIndex = i;
 					ingredientsTemplate.add(i, Ingredient.EMPTY);
 				} else {
 					ingredientsTemplate.add(i, ingredient);
 					if (!ingredient.isEmpty()) {
-						ItemStack[] ingredientItems = ingredient.getItems();
 						craftinginventory.setItem(i, ingredientItems[0]);
 					}
 				}
@@ -91,9 +70,9 @@ public class AssembleRecipesMaker {
 				ingredientsCopy.set(storageIngredientIndex, Ingredient.of(storageItem));
 				craftinginventory.setItem(storageIngredientIndex, storageItem.copy());
 
-				ItemStack result = ClientRecipeHelper.assemble(recipe, craftinginventory.asCraftInput());
-				ResourceLocation id = ResourceLocation.fromNamespaceAndPath(SophisticatedStorageInMotion.MOD_ID, "assemble_moving_storage_" + BuiltInRegistries.ITEM.getKey(result.getItem()).getPath() + result.getComponentsPatch().toString().toLowerCase(Locale.ROOT).replaceAll("[{\",}:>=@\\[\\]\\s]", "_"));
-				itemGroupRecipes.add(new RecipeHolder<>(id, constructRecipe.construct(recipe, ingredientsCopy, result)));
+				ItemStack result = ClientRecipeHelper.assemble(recipe, craftinginventory);
+				ResourceLocation id = new ResourceLocation(SophisticatedStorageInMotion.MOD_ID, "assemble_moving_storage_" + BuiltInRegistries.ITEM.getKey(result.getItem()).getPath() + result.getOrCreateTag().toString().toLowerCase(Locale.ROOT).replaceAll("[{\",}:>=@\\[\\]\\s]", "_"));
+				itemGroupRecipes.add(constructRecipe.construct(recipe, id, ingredientsCopy, result));
 			}
 
 			return itemGroupRecipes;
@@ -118,6 +97,6 @@ public class AssembleRecipesMaker {
 	}
 
 	private interface RecipeConstructor<T extends Recipe<?>> {
-		CraftingRecipe construct(T originalRecipe, NonNullList<Ingredient> ingredients, ItemStack result);
+		CraftingRecipe construct(T originalRecipe, ResourceLocation id, NonNullList<Ingredient> ingredients, ItemStack result);
 	}
 }

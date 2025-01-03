@@ -9,20 +9,20 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.Level;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainerMenu;
-import net.p3pp3rf1y.sophisticatedcore.network.PacketDistributor;
 import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.MovingStorageData;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.MovingStorageWrapper;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.StorageMinecart;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.init.ModEntities;
-import net.p3pp3rf1y.sophisticatedstorageinmotion.network.MovingStorageContentsPayload;
+import net.p3pp3rf1y.sophisticatedstorageinmotion.network.MovingStorageContentsMessage;
+import net.p3pp3rf1y.sophisticatedstorageinmotion.network.StorageInMotionPacketHandler;
 
 public class MovingStorageSettingsContainerMenu extends SettingsContainerMenu<IStorageWrapper> {
 	private final int entityId;
 	private CompoundTag lastSettingsNbt = null;
 
 	protected MovingStorageSettingsContainerMenu(int windowId, Player player, int entityId) {
-		this(ModEntities.MOVING_STORAGE_SETTINGS_CONTAINER_TYPE.get(), windowId, player, entityId);
+		this(ModEntities.MOVING_STORAGE_SETTINGS_CONTAINER_TYPE, windowId, player, entityId);
 	}
 
 	protected MovingStorageSettingsContainerMenu(MenuType<?> menuType, int windowId, Player player, int entityId) {
@@ -72,7 +72,7 @@ public class MovingStorageSettingsContainerMenu extends SettingsContainerMenu<IS
 				if (!settingsNbt.isEmpty()) {
 					settingsContents.put(MovingStorageWrapper.SETTINGS_TAG, settingsNbt);
 					if (player instanceof ServerPlayer serverPlayer) {
-						PacketDistributor.sendToPlayer(serverPlayer, new MovingStorageContentsPayload(uuid, settingsContents));
+						StorageInMotionPacketHandler.sendToClient(serverPlayer, new MovingStorageContentsMessage(uuid, settingsContents));
 					}
 				}
 			});

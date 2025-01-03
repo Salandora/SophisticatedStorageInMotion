@@ -33,7 +33,7 @@ public class StorageMinecartItemRenderer implements BuiltinItemRendererRegistry.
 
 	private static StorageMinecart getStorageMinecart(Minecraft mc) {
 		if (MINECART == null) {
-			MINECART = new StorageMinecart(ModEntities.STORAGE_MINECART.get(), mc.level);
+			MINECART = new StorageMinecart(ModEntities.STORAGE_MINECART, mc.level);
 		}
 
 		return MINECART;

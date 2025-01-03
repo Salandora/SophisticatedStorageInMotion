@@ -1,12 +1,11 @@
 {
-  "neoforge:conditions": [
+  "type": "sophisticatedstorageinmotion:moving_storage_from_storage",
+  "conditions": [
     {
       "type": "sophisticatedcore:item_enabled",
       "itemRegistryName": "sophisticatedstorageinmotion:storage_minecart"
     }
   ],
-  "type": "sophisticatedstorageinmotion:moving_storage_from_storage",
-  "category": "misc",
   "ingredients": [
     {
       "item": "minecraft:minecart"
@@ -16,7 +15,6 @@
     }
   ],
   "result": {
-    "count": 1,
-    "id": "sophisticatedstorageinmotion:storage_minecart"
+    "item": "sophisticatedstorageinmotion:storage_minecart"
   }
 }

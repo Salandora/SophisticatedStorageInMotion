@@ -4,18 +4,14 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
 import net.p3pp3rf1y.sophisticatedcore.event.common.PlayerEvents;
-import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
+import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import net.p3pp3rf1y.sophisticatedstorage.block.ItemContentsStorage;
 import net.p3pp3rf1y.sophisticatedstorage.block.StorageBlockEntity;
 import net.p3pp3rf1y.sophisticatedstorage.block.StorageWrapper;
 import net.p3pp3rf1y.sophisticatedstorage.item.StorageBlockItem;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.MovingStorageData;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.item.MovingStorageItem;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.UUID;
 
 public class CommonEventHandler {
 	private CommonEventHandler() {
@@ -30,21 +26,17 @@ public class CommonEventHandler {
 			return;
 		}
 
-		@Nullable UUID storageId = result.sophisticatedCore_get(ModCoreDataComponents.STORAGE_UUID);
+		NBTHelper.getUniqueId(result, StorageWrapper.UUID_TAG).ifPresent(storageId -> {
+			MovingStorageData storageData = MovingStorageData.get(storageId);
+			CompoundTag contents = storageData.getContents();
+			contents.put(StorageWrapper.RENDER_INFO_TAG, NBTHelper.getCompound(result, StorageWrapper.RENDER_INFO_TAG).orElse(new CompoundTag()));
+			CompoundTag fullContents = new CompoundTag();
+			fullContents.put(StorageBlockEntity.STORAGE_WRAPPER_TAG, contents);
 
-		if (storageId == null) {
-			return;
-		}
+			ItemContentsStorage.get().setStorageContents(storageId, fullContents);
 
-		MovingStorageData storageData = MovingStorageData.get(storageId);
-		CompoundTag contents = storageData.getContents();
-		contents.put(StorageWrapper.RENDER_INFO_TAG, result.sophisticatedCore_getOrDefault(ModCoreDataComponents.RENDER_INFO_TAG, CustomData.EMPTY).copyTag());
-		CompoundTag fullContents = new CompoundTag();
-		fullContents.put(StorageBlockEntity.STORAGE_WRAPPER_TAG, contents);
-
-		ItemContentsStorage.get().setStorageContents(storageId, fullContents);
-
-		storageData.removeStorageContents();
+			storageData.removeStorageContents();
+		});
 	}
 
 	private static boolean isUncraftedFromSingleMovingStorage(Container inventory) {

@@ -1,13 +1,12 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.init;
 
-import io.github.fabricators_of_create.porting_lib.util.DeferredRegister;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
+import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
+import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.inventory.MenuType;
 import net.p3pp3rf1y.sophisticatedcore.util.Capabilities;
-import net.p3pp3rf1y.sophisticatedcore.util.IMenuTypeExtension;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.SophisticatedStorageInMotion;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.common.gui.MovingLimitedBarrelContainerMenu;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.common.gui.MovingLimitedBarrelSettingsContainerMenu;
@@ -21,32 +20,32 @@ public class ModEntities {
 	private ModEntities() {
 	}
 
-	private static final DeferredRegister<MenuType<?>> MENU_TYPES = DeferredRegister.create(BuiltInRegistries.MENU, SophisticatedStorageInMotion.MOD_ID);
+	public static final EntityType<StorageMinecart> STORAGE_MINECART = registerEntityType("storage_minecart", () -> EntityType.Builder.of((EntityType.EntityFactory<StorageMinecart>) StorageMinecart::new, MobCategory.MISC).sized(0.98F, 0.7F).clientTrackingRange(8).build(SophisticatedStorageInMotion.MOD_ID + ":storage_minecart"));
 
-	public static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(BuiltInRegistries.ENTITY_TYPE, SophisticatedStorageInMotion.MOD_ID);
+	public static final MenuType<MovingStorageContainerMenu<?>> MOVING_STORAGE_CONTAINER_TYPE = registerMenu("moving_storage",
+			() -> new ExtendedScreenHandlerType<>(MovingStorageContainerMenu::fromBuffer));
 
-	public static final Supplier<EntityType<StorageMinecart>> STORAGE_MINECART = ENTITY_TYPES.register("storage_minecart", () -> EntityType.Builder.of((EntityType.EntityFactory<StorageMinecart>) StorageMinecart::new, MobCategory.MISC).sized(0.98F, 0.7F).clientTrackingRange(8).passengerAttachments(0.1875F).build(SophisticatedStorageInMotion.MOD_ID + ":storage_minecart"));
+	public static final MenuType<MovingStorageSettingsContainerMenu> MOVING_STORAGE_SETTINGS_CONTAINER_TYPE = registerMenu("moving_storage_settings",
+			() -> new ExtendedScreenHandlerType<>(MovingStorageSettingsContainerMenu::fromBuffer));
 
-	public static final Supplier<MenuType<MovingStorageContainerMenu<?>>> MOVING_STORAGE_CONTAINER_TYPE = MENU_TYPES.register("moving_storage",
-			() -> IMenuTypeExtension.create(MovingStorageContainerMenu::fromBuffer));
+	public static final MenuType<MovingLimitedBarrelContainerMenu<?>> MOVING_LIMITED_BARREL_CONTAINER_TYPE = registerMenu("moving_limited_barrel",
+			() -> new ExtendedScreenHandlerType<>(MovingLimitedBarrelContainerMenu::fromBuffer));
 
-	public static final Supplier<MenuType<MovingStorageSettingsContainerMenu>> MOVING_STORAGE_SETTINGS_CONTAINER_TYPE = MENU_TYPES.register("moving_storage_settings",
-			() -> IMenuTypeExtension.create(MovingStorageSettingsContainerMenu::fromBuffer));
-
-	public static final Supplier<MenuType<MovingLimitedBarrelContainerMenu<?>>> MOVING_LIMITED_BARREL_CONTAINER_TYPE = MENU_TYPES.register("moving_limited_barrel",
-			() -> IMenuTypeExtension.create(MovingLimitedBarrelContainerMenu::fromBuffer));
-
-	public static final Supplier<MenuType<MovingLimitedBarrelSettingsContainerMenu>> MOVING_LIMITED_BARREL_SETTINGS_CONTAINER_TYPE = MENU_TYPES.register("moving_limited_barrel_settings",
-			() -> IMenuTypeExtension.create(MovingLimitedBarrelSettingsContainerMenu::fromBuffer));
+	public static final MenuType<MovingLimitedBarrelSettingsContainerMenu> MOVING_LIMITED_BARREL_SETTINGS_CONTAINER_TYPE = registerMenu("moving_limited_barrel_settings",
+			() -> new ExtendedScreenHandlerType<>(MovingLimitedBarrelSettingsContainerMenu::fromBuffer));
 
 	private static void registerCapabilities() {
-		Capabilities.ItemHandler.ENTITY_AUTOMATION.registerForType((entity, direction) -> entity.getStorageHolder().getStorageWrapper().getInventoryForInputOutput(), STORAGE_MINECART.get());
+		Capabilities.ItemHandler.ENTITY_AUTOMATION.registerForType((entity, direction) -> entity.getStorageHolder().getStorageWrapper().getInventoryForInputOutput(), STORAGE_MINECART);
 	}
 
 	public static void registerHandlers() {
-		ENTITY_TYPES.register();
-		MENU_TYPES.register();
-
 		ModEntities.registerCapabilities();
+	}
+
+	public static <T extends EntityType<?>> T registerEntityType(String id, Supplier<T> supplier) {
+		return Registry.register(BuiltInRegistries.ENTITY_TYPE, SophisticatedStorageInMotion.getRL(id), supplier.get());
+	}
+	public static <T extends MenuType<?>> T registerMenu(String id, Supplier<T> supplier) {
+		return Registry.register(BuiltInRegistries.MENU, SophisticatedStorageInMotion.getRL(id), supplier.get());
 	}
 }

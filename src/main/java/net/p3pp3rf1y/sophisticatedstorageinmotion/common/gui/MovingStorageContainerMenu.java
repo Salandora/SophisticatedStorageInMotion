@@ -5,6 +5,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -12,9 +13,8 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.Level;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.ISyncedContainer;
-import net.p3pp3rf1y.sophisticatedcore.common.gui.SophisticatedMenuProvider;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
-import net.p3pp3rf1y.sophisticatedcore.network.PacketDistributor;
+import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
 import net.p3pp3rf1y.sophisticatedcore.settings.itemdisplay.ItemDisplaySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
 import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
@@ -24,7 +24,8 @@ import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.MovingStorageData;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.MovingStorageWrapper;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.StorageMinecart;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.init.ModEntities;
-import net.p3pp3rf1y.sophisticatedstorageinmotion.network.MovingStorageContentsPayload;
+import net.p3pp3rf1y.sophisticatedstorageinmotion.network.MovingStorageContentsMessage;
+import net.p3pp3rf1y.sophisticatedstorageinmotion.network.StorageInMotionPacketHandler;
 
 import javax.annotation.Nullable;
 import java.lang.ref.WeakReference;
@@ -38,7 +39,7 @@ public class MovingStorageContainerMenu<T extends Entity & IMovingStorageEntity>
 	private CompoundTag lastSettingsNbt = null;
 
 	public MovingStorageContainerMenu(int containerId, Player player, int entityId) {
-		this(ModEntities.MOVING_STORAGE_CONTAINER_TYPE.get(), containerId, player, entityId);
+		this(ModEntities.MOVING_STORAGE_CONTAINER_TYPE, containerId, player, entityId);
 	}
 
 	public MovingStorageContainerMenu(MenuType<?> menuType, int containerId, Player player, int entityId) {
@@ -97,13 +98,13 @@ public class MovingStorageContainerMenu<T extends Entity & IMovingStorageEntity>
 
 	@Override
 	public void openSettings() {
-		if (isClientSide()) {
+		if (!(player instanceof ServerPlayer serverPlayer)) {
 			sendToServer(data -> data.putString(ACTION_TAG, "openSettings"));
 			return;
 		}
 		getStorageEntity().ifPresent(entity ->
-				player.sophisticatedCore_openMenu(new SophisticatedMenuProvider((w, p, pl) -> instantiateSettingsContainerMenu(w, pl, entity.getId()),
-						Component.translatable(StorageTranslationHelper.INSTANCE.translGui("settings.title")), false), buffer -> buffer.writeInt(entity.getId()))
+				NetworkHooks.openScreen(serverPlayer, new SimpleMenuProvider((w, p, pl) -> instantiateSettingsContainerMenu(w, pl, entity.getId()),
+						Component.translatable(StorageTranslationHelper.INSTANCE.translGui("settings.title"))), buffer -> buffer.writeInt(entity.getId()))
 		);
 	}
 
@@ -151,7 +152,7 @@ public class MovingStorageContainerMenu<T extends Entity & IMovingStorageEntity>
 				if (!settingsNbt.isEmpty()) {
 					settingsContents.put(MovingStorageWrapper.SETTINGS_TAG, settingsNbt);
 					if (player instanceof ServerPlayer serverPlayer) {
-						PacketDistributor.sendToPlayer(serverPlayer, new MovingStorageContentsPayload(uuid, settingsContents));
+						PacketHandler.sendToClient(serverPlayer, new MovingStorageContentsMessage(uuid, settingsContents));
 					}
 				}
 			});

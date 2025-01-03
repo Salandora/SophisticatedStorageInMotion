@@ -1,14 +1,13 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.init;
 
-import io.github.fabricators_of_create.porting_lib.util.DeferredRegister;
-import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
+import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 import net.minecraft.world.level.block.DispenserBlock;
@@ -18,39 +17,38 @@ import net.p3pp3rf1y.sophisticatedstorageinmotion.crafting.MovingStorageFromStor
 import net.p3pp3rf1y.sophisticatedstorageinmotion.crafting.UncraftMovingStorageRecipe;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.item.StorageMinecartItem;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Supplier;
 
 public class ModItems {
-	private ModItems() {
-	}
+	static List<Item> ITEMS = new ArrayList<>(); // Must be up here!
 
-	public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(BuiltInRegistries.ITEM, SophisticatedStorageInMotion.MOD_ID);
-	public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB.location(), SophisticatedStorageInMotion.MOD_ID);
+	public static final StorageMinecartItem STORAGE_MINECART = register("storage_minecart", StorageMinecartItem::new);
 
-	public static final Supplier<StorageMinecartItem> STORAGE_MINECART = ITEMS.register("storage_minecart", StorageMinecartItem::new);
+	public static final RecipeSerializer<?> MOVING_STORAGE_FROM_STORAGE_SERIALIZER = registerRecipeSerializer("moving_storage_from_storage", MovingStorageFromStorageRecipe.Serializer::new);
+	public static final RecipeSerializer<? extends CraftingRecipe> UNCRAFT_MOVING_STORAGE_SERIALIZER = registerRecipeSerializer("uncraft_moving_storage", () -> new SimpleCraftingRecipeSerializer<>(UncraftMovingStorageRecipe::new));
 
-	// private static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES = DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, SophisticatedStorageInMotion.MOD_ID);
-
-	private static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(BuiltInRegistries.RECIPE_SERIALIZER, SophisticatedStorageInMotion.MOD_ID);
-	public static final Supplier<RecipeSerializer<?>> MOVING_STORAGE_FROM_STORAGE_SERIALIZER = RECIPE_SERIALIZERS.register("moving_storage_from_storage", MovingStorageFromStorageRecipe.Serializer::new);
-	public static final Supplier<RecipeSerializer<?>> UNCRAFT_MOVING_STORAGE_SERIALIZER = RECIPE_SERIALIZERS.register("uncraft_moving_storage", () -> new SimpleCraftingRecipeSerializer<>(UncraftMovingStorageRecipe::new));
-
-	public static Supplier<CreativeModeTab> CREATIVE_TAB = CREATIVE_MODE_TABS.register("main", () ->
-			FabricItemGroup.builder().icon(() -> new ItemStack(STORAGE_MINECART.get()))
+	public static CreativeModeTab CREATIVE_TAB = FabricItemGroup.builder().icon(() -> new ItemStack(STORAGE_MINECART))
 					.title(Component.translatable("itemGroup.sophisticatedstorageinmotion"))
 					.displayItems((featureFlags, output) -> {
-						ITEMS.getEntries().stream().filter(i -> i.get() instanceof ItemBase).forEach(i -> ((ItemBase) i.get()).addCreativeTabItems(output::accept));
+						ITEMS.stream().filter(i -> i instanceof ItemBase).forEach(i -> ((ItemBase) i).addCreativeTabItems(output::accept));
 					})
-					.build());
+					.build();
 
 	public static void registerHandlers() {
-		ITEMS.register();
-		CREATIVE_MODE_TABS.register();
-		// ATTACHMENT_TYPES.register();
-		RECIPE_SERIALIZERS.register();
 	}
 
 	public static void registerDispenseBehavior() {
-		DispenserBlock.registerBehavior(STORAGE_MINECART.get(), StorageMinecartItem.DISPENSE_ITEM_BEHAVIOR);
+		DispenserBlock.registerBehavior(STORAGE_MINECART, StorageMinecartItem.DISPENSE_ITEM_BEHAVIOR);
+	}
+
+	public static <T extends Item> T register(String id, Supplier<T> supplier) {
+		T item = supplier.get();
+		ITEMS.add(item);
+		return Registry.register(BuiltInRegistries.ITEM, SophisticatedStorageInMotion.getRL(id), item);
+	}
+	public static <T extends RecipeSerializer<?>> T registerRecipeSerializer(String id, Supplier<T> supplier) {
+		return Registry.register(BuiltInRegistries.RECIPE_SERIALIZER, SophisticatedStorageInMotion.getRL(id), supplier.get());
 	}
 }

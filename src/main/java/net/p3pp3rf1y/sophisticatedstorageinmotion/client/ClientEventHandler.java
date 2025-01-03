@@ -10,6 +10,6 @@ public class  ClientEventHandler{
 	}
 
 	private static void registerClientExtensions() {
-		BuiltinItemRendererRegistry.INSTANCE.register(ModItems.STORAGE_MINECART.get(), new StorageMinecartItemRenderer());
+		BuiltinItemRendererRegistry.INSTANCE.register(ModItems.STORAGE_MINECART, new StorageMinecartItemRenderer());
 	}
 }

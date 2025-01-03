@@ -1,17 +1,11 @@
 {
-  "neoforge:conditions": [
-    {
-      "type": "sophisticatedcore:item_enabled",
-      "itemRegistryName": "sophisticatedstorageinmotion:storage_minecart"
-    }
-  ],
   "parent": "minecraft:recipes/root",
   "criteria": {
     "has_sophisticated_storage": {
       "conditions": {
         "items": [
           {
-            "items": "#sophisticatedstorage:all_storage"
+            "tag": "sophisticatedstorage:all_storage"
           }
         ]
       },
@@ -26,13 +20,14 @@
   },
   "requirements": [
     [
-      "has_the_recipe",
-      "has_sophisticated_storage"
+      "has_sophisticated_storage",
+      "has_the_recipe"
     ]
   ],
   "rewards": {
     "recipes": [
       "sophisticatedstorageinmotion:storage_minecart"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

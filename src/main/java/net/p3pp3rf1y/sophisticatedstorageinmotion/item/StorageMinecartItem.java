@@ -1,8 +1,8 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.item;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.BlockSource;
 import net.minecraft.core.Direction;
-import net.minecraft.core.dispenser.BlockSource;
 import net.minecraft.core.dispenser.DefaultDispenseItemBehavior;
 import net.minecraft.core.dispenser.DispenseItemBehavior;
 import net.minecraft.server.level.ServerLevel;
@@ -27,9 +27,9 @@ public class StorageMinecartItem extends MovingStorageItem {
 		private final DefaultDispenseItemBehavior defaultDispenseItemBehavior = new DefaultDispenseItemBehavior();
 
 		public ItemStack execute(BlockSource blockSource, ItemStack stack) {
-			Direction direction = blockSource.state().getValue(DispenserBlock.FACING);
-			ServerLevel serverlevel = blockSource.level();
-			BlockPos blockpos = blockSource.pos().relative(direction);
+			Direction direction = blockSource.getBlockState().getValue(DispenserBlock.FACING);
+			ServerLevel serverlevel = blockSource.getLevel();
+			BlockPos blockpos = blockSource.getPos().relative(direction);
 			BlockState blockstate = serverlevel.getBlockState(blockpos);
 			RailShape railshape = blockstate.getBlock() instanceof BaseRailBlock baseRailBlock ? baseRailBlock.sophisticated_getRailDirection(blockstate, serverlevel, blockpos, null) : RailShape.NORTH_SOUTH;
 			double slopeOffset;
@@ -56,10 +56,6 @@ public class StorageMinecartItem extends MovingStorageItem {
 			serverlevel.addFreshEntity(createMinecart(serverlevel, blockpos, slopeOffset, stack, null));
 			stack.shrink(1);
 			return stack;
-		}
-
-		protected void playSound(BlockSource blockSource) {
-			blockSource.level().levelEvent(1000, blockSource.pos(), 0);
 		}
 	};
 
