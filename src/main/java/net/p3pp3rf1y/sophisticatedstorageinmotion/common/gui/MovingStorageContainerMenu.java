@@ -5,7 +5,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -14,9 +13,9 @@ import net.minecraft.world.level.Level;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.ISyncedContainer;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
-import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
 import net.p3pp3rf1y.sophisticatedcore.settings.itemdisplay.ItemDisplaySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
+import net.p3pp3rf1y.sophisticatedcore.util.MenuProviderHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
 import net.p3pp3rf1y.sophisticatedstorage.client.gui.StorageTranslationHelper;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.IMovingStorageEntity;
@@ -103,8 +102,8 @@ public class MovingStorageContainerMenu<T extends Entity & IMovingStorageEntity>
 			return;
 		}
 		getStorageEntity().ifPresent(entity ->
-				NetworkHooks.openScreen(serverPlayer, new SimpleMenuProvider((w, p, pl) -> instantiateSettingsContainerMenu(w, pl, entity.getId()),
-						Component.translatable(StorageTranslationHelper.INSTANCE.translGui("settings.title"))), buffer -> buffer.writeInt(entity.getId()))
+				serverPlayer.openMenu(MenuProviderHelper.createMenuProvider((w, p, pl) -> instantiateSettingsContainerMenu(w, pl, entity.getId()),
+						Component.translatable(StorageTranslationHelper.INSTANCE.translGui("settings.title")), buffer -> buffer.writeInt(entity.getId())))
 		);
 	}
 
@@ -152,7 +151,7 @@ public class MovingStorageContainerMenu<T extends Entity & IMovingStorageEntity>
 				if (!settingsNbt.isEmpty()) {
 					settingsContents.put(MovingStorageWrapper.SETTINGS_TAG, settingsNbt);
 					if (player instanceof ServerPlayer serverPlayer) {
-						PacketHandler.sendToClient(serverPlayer, new MovingStorageContentsMessage(uuid, settingsContents));
+						StorageInMotionPacketHandler.sendToClient(serverPlayer, new MovingStorageContentsMessage(uuid, settingsContents));
 					}
 				}
 			});

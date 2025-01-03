@@ -27,7 +27,7 @@ public class MovingStorageData extends SavedData {
 	}
 
 	public static MovingStorageData get(UUID storageId) {
-		if (SophisticatedCore.isLogicalServerThread()) {
+		if (SophisticatedCore.getCurrentServer() != null && SophisticatedCore.getCurrentServer().isSameThread()) {
 			MinecraftServer server = SophisticatedCore.getCurrentServer();
 			if (server != null) {
 				ServerLevel overworld = server.getLevel(Level.OVERWORLD);

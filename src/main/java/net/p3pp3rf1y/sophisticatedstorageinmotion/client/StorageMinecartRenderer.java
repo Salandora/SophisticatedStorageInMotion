@@ -55,7 +55,6 @@ public class StorageMinecartRenderer extends MinecartRenderer<StorageMinecart> {
 			BlockRenderDispatcher blockRenderer = minecraft.getBlockRenderer();
 			BakedModel bakedModel = blockRenderer.getBlockModel(barrel.getBlockState());
 
-			// TODO: Fix this
 			ModelData modelData = BarrelBakedModelBase.getModelDataFromBlockEntity(barrel);
 			// Added to set the model data for the barrel baked model
 			if (bakedModel instanceof BarrelBakedModelBase barrelBakedModel) {

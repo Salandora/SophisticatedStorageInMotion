@@ -37,6 +37,7 @@ public class ModItems {
 					.build();
 
 	public static void registerHandlers() {
+		Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, SophisticatedStorageInMotion.getRL("item_group"), CREATIVE_TAB);
 	}
 
 	public static void registerDispenseBehavior() {

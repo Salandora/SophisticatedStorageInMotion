@@ -1,5 +1,10 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.entity;
 
+import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
+import net.fabricmc.fabric.api.lookup.v1.entity.EntityApiLookup;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -24,6 +29,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.p3pp3rf1y.porting_lib.base.util.LazyOptional;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
+import net.p3pp3rf1y.sophisticatedcore.util.Capabilities;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import net.p3pp3rf1y.sophisticatedstorage.block.StorageWrapper;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.client.gui.StorageInMotionTranslationHelper;
@@ -31,6 +37,7 @@ import net.p3pp3rf1y.sophisticatedstorageinmotion.init.ModEntities;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.init.ModItems;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
 import java.util.Optional;
 
 public class StorageMinecart extends MinecartChest implements IMovingStorageEntity {
@@ -157,16 +164,13 @@ public class StorageMinecart extends MinecartChest implements IMovingStorageEnti
 		invalidateCaps();
 	}
 
-
-	@Override
 	public void invalidateCaps() {
-		super.invalidateCaps();
 		itemHandler.invalidate();
 	}
 
 	@Override
 	public int getContainerSize() {
-		return getStorageHolder().getStorageWrapper().getInventoryHandler().getSlots();
+		return getStorageHolder().getStorageWrapper().getInventoryHandler().getSlotCount();
 	}
 
 	@Override
@@ -210,7 +214,13 @@ public class StorageMinecart extends MinecartChest implements IMovingStorageEnti
 	@Override
 	public ItemStack removeChestVehicleItemNoUpdate(int slot) {
 		InventoryHandler inventoryHandler = getStorageHolder().getStorageWrapper().getInventoryHandler();
-		return inventoryHandler.extractItem(slot, inventoryHandler.getStackInSlot(slot).getCount(), false);
+		ItemStack stack = inventoryHandler.getStackInSlot(slot);
+		long extracted;
+		try (Transaction ctx = Transaction.openOuter()) {
+			extracted = inventoryHandler.extractSlot(slot, ItemVariant.of(stack), stack.getCount(), ctx);
+			ctx.commit();
+		}
+		return stack.copyWithCount((int) extracted);
 	}
 
 	@Override
@@ -220,7 +230,14 @@ public class StorageMinecart extends MinecartChest implements IMovingStorageEnti
 
 	@Override
 	public ItemStack removeChestVehicleItem(int slot, int amount) {
-		return getStorageHolder().getStorageWrapper().getInventoryHandler().extractItem(slot, amount, false);
+		InventoryHandler inventoryHandler = getStorageHolder().getStorageWrapper().getInventoryHandler();
+		ItemStack stack = inventoryHandler.getStackInSlot(slot);
+		long extracted;
+		try (Transaction ctx = Transaction.openOuter()) {
+			extracted = inventoryHandler.extractSlot(slot, ItemVariant.of(stack), stack.getCount(), ctx);
+			ctx.commit();
+		}
+		return stack.copyWithCount((int) extracted);
 	}
 
 	@Override
@@ -233,11 +250,11 @@ public class StorageMinecart extends MinecartChest implements IMovingStorageEnti
 		return SlotAccess.NULL;
 	}
 
-	@Override
-	public <T> LazyOptional<T> getCapability(Capability<T> capability, @Nullable Direction facing) {
-		if (this.isAlive() && capability == ForgeCapabilities.ITEM_HANDLER) {
+	@Nonnull
+	public <T> LazyOptional<T> getCapability(EntityApiLookup<T, Direction> capability, @Nullable Direction facing) {
+		if (this.isAlive() && capability == Capabilities.ItemHandler.ENTITY_AUTOMATION) {
 			return itemHandler.cast();
 		}
-		return super.getCapability(capability, facing);
+		return LazyOptional.empty();
 	}
 }

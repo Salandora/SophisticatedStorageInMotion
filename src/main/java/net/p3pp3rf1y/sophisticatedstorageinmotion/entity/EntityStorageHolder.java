@@ -1,5 +1,7 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.entity;
 
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
+import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -28,6 +30,7 @@ import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.UpgradeRenderDataType;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ITickableUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
+import net.p3pp3rf1y.sophisticatedcore.util.MenuProviderHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
 import net.p3pp3rf1y.sophisticatedstorage.block.*;
@@ -185,7 +188,10 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 
 	protected void tryToPickup(Level level, ItemEntity itemEntity) {
 		ItemStack remainingStack = itemEntity.getItem().copy();
-		remainingStack = InventoryHelper.runPickupOnPickupResponseUpgrades(level, getStorageWrapper().getUpgradeHandler(), remainingStack, false);
+		try (Transaction ctx = Transaction.openOuter()) {
+			remainingStack = InventoryHelper.runPickupOnPickupResponseUpgrades(level, getStorageWrapper().getUpgradeHandler(), remainingStack, ctx);
+			ctx.commit();
+		}
 		if (remainingStack.getCount() < itemEntity.getItem().getCount()) {
 			itemEntity.setItem(remainingStack);
 		}
@@ -294,7 +300,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 
 	public InteractionResult openContainerMenu(ServerPlayer player) {
 		// TODO: Fix this
-		NetworkHooks.openScreen(player, new SimpleMenuProvider((w, p, pl) -> createMenu(w, pl), entity.getName()), buffer -> buffer.writeInt(entity.getId()));
+		player.openMenu(MenuProviderHelper.createMenuProvider((w, p, pl) -> createMenu(w, pl), entity.getName(), buffer -> buffer.writeInt(entity.getId())));
 		return player.level().isClientSide ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
 	}
 
