@@ -64,7 +64,7 @@ repositories {
 
     maven {
         name = "GHPCore"
-        url = uri("https://maven.pkg.github.com/p3pp3rf1y/sophisticatedcore")
+        url = uri("https://maven.pkg.github.com/Salandora/sophisticatedcore")
         credentials {
             username = System.getenv("USERNAME")
             password = System.getenv("READ_PACKAGES_TOKEN")
@@ -75,7 +75,7 @@ repositories {
     }
     maven {
         name = "GHPStorage"
-        url = uri("https://maven.pkg.github.com/p3pp3rf1y/sophisticatedstorage")
+        url = uri("https://maven.pkg.github.com/Salandora/sophisticatedstorage")
         credentials {
             username = System.getenv("USERNAME")
             password = System.getenv("READ_PACKAGES_TOKEN")
@@ -194,12 +194,7 @@ dependencies {
             }
         }
     } else {
-        dependencies.implementation("sophisticatedcore:sophisticatedcore:${sc_version}") {
-            transitive = false
-        }
-        dependencies.testImplementation("sophisticatedcore:sophisticatedcore:${sc_version}") {
-            transitive = false
-        }
+        modImplementation("sophisticatedcore:sophisticatedcore:${sc_version}")
     }
     if (findProject(':SophisticatedStorage') != null) {
         implementation project(path: ":SophisticatedStorage", configuration: "namedElements")
@@ -210,10 +205,7 @@ dependencies {
             }
         }
     } else {
-        dependencies.implementation("sophisticatedstorage:sophisticatedstorage:${ss_version}") {
-            transitive = false
-        }
-        dependencies.testImplementation("sophisticatedstorage:sophisticatedstorage:${ss_version}") {
+        modImplementation("sophisticatedstorage:sophisticatedstorage:${ss_version}") {
             transitive = false
         }
     }
