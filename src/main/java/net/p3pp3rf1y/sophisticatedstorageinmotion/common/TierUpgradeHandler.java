@@ -1,6 +1,7 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.common;
 
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -9,8 +10,9 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.properties.WoodType;
-import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.minecraft.world.phys.EntityHitResult;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedstorage.block.StorageBlockBase;
@@ -21,6 +23,7 @@ import net.p3pp3rf1y.sophisticatedstorageinmotion.SophisticatedStorageInMotion;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.IMovingStorageEntity;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.MovingStorageWrapper;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.StorageMinecart;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,8 +34,7 @@ public class TierUpgradeHandler {
 
 	private static final Map<StorageTierUpgradeItem.TierUpgrade, Map<Item, IEntityTierUpgradeDefinition>> ENTITY_TIER_UPGRADE_DEFINITIONS = new HashMap<>();
 
-	public static void onTierUpgradeInteract(PlayerInteractEvent.EntityInteract event) {
-		Player player = event.getEntity();
+	public static InteractionResult onTierUpgradeInteract(Player player, Level world, InteractionHand hand, Entity entity, @Nullable EntityHitResult hitResult) {
 		ItemStack tierUpgrade;
 		StorageTierUpgradeItem storageTierUpgradeItem;
 		if (player.getMainHandItem().getItem() instanceof StorageTierUpgradeItem item) {
@@ -42,27 +44,29 @@ public class TierUpgradeHandler {
 			tierUpgrade = player.getOffhandItem();
 			storageTierUpgradeItem = item;
 		} else {
-			return;
+			return InteractionResult.PASS;
 		}
 
 		Map<Item, IEntityTierUpgradeDefinition> tierDefinitions = ENTITY_TIER_UPGRADE_DEFINITIONS.get(storageTierUpgradeItem.getTier());
 		if (tierDefinitions == null) {
 			SophisticatedStorageInMotion.LOGGER.warn("No tier upgrade definitions found for {}", storageTierUpgradeItem.getTier());
-			return;
+			return InteractionResult.PASS;
 		}
 
-		if (event.getTarget() instanceof IMovingStorageEntity movingStorage) {
-			upgradeEntity(event, event.getTarget(), player, tierUpgrade, tierDefinitions, movingStorage.getStorageItem().getItem(), movingStorage.getStorageItem());
-		} else if (event.getTarget() instanceof MinecartChest minecartChest) {
-			upgradeEntity(event, minecartChest, player, tierUpgrade, tierDefinitions, Items.CHEST, ItemStack.EMPTY);
+		if (entity instanceof IMovingStorageEntity movingStorage) {
+			return upgradeEntity(entity, player, tierUpgrade, tierDefinitions, movingStorage.getStorageItem().getItem(), movingStorage.getStorageItem());
+		} else if (entity instanceof MinecartChest minecartChest) {
+			return upgradeEntity(minecartChest, player, tierUpgrade, tierDefinitions, Items.CHEST, ItemStack.EMPTY);
 		}
+
+		return InteractionResult.PASS;
 	}
 
-	private static void upgradeEntity(PlayerInteractEvent.EntityInteract event, Entity entity, Player player, ItemStack tierUpgrade, Map<Item, IEntityTierUpgradeDefinition> tierDefinitions, Item tierDefinitionItem, ItemStack storageItem) {
+	private static InteractionResult upgradeEntity(Entity entity, Player player, ItemStack tierUpgrade, Map<Item, IEntityTierUpgradeDefinition> tierDefinitions, Item tierDefinitionItem, ItemStack storageItem) {
 		IEntityTierUpgradeDefinition upgradeDefinition = tierDefinitions.get(tierDefinitionItem);
 		if (upgradeDefinition == null) {
-			SophisticatedStorageInMotion.LOGGER.warn("No tier upgrade definition found for {}", () -> BuiltInRegistries.ITEM.getKey(tierDefinitionItem));
-			return;
+			SophisticatedStorageInMotion.LOGGER.warn("No tier upgrade definition found for {}", BuiltInRegistries.ITEM.getKey(tierDefinitionItem));
+			return InteractionResult.PASS;
 		}
 
 		if (!player.level().isClientSide()) {
@@ -73,8 +77,7 @@ public class TierUpgradeHandler {
 			}
 		}
 
-		event.setCanceled(true);
-		event.setCancellationResult(InteractionResult.SUCCESS);
+		return InteractionResult.SUCCESS;
 	}
 
 	interface IEntityTierUpgradeDefinition {
@@ -129,8 +132,8 @@ public class TierUpgradeHandler {
 			if (upgradedItem.getBlock() instanceof StorageBlockBase storageBlock) {
 				IStorageWrapper storageWrapper = movingStorage.getStorageHolder().getStorageWrapper();
 				if (storageWrapper instanceof MovingStorageWrapper movingStorageWrapper) {
-					int additionalInventorySlots = storageBlock.getNumberOfInventorySlots() - storageWrapper.getInventoryHandler().getSlots();
-					int additionalUpgradeSlots = storageBlock.getNumberOfUpgradeSlots() - storageWrapper.getUpgradeHandler().getSlots();
+					int additionalInventorySlots = storageBlock.getNumberOfInventorySlots() - storageWrapper.getInventoryHandler().getSlotCount();
+					int additionalUpgradeSlots = storageBlock.getNumberOfUpgradeSlots() - storageWrapper.getUpgradeHandler().getSlotCount();
 					movingStorageWrapper.changeSize(additionalInventorySlots, additionalUpgradeSlots);
 				}
 			}
