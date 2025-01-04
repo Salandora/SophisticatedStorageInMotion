@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.common;
 
+import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
@@ -19,7 +20,7 @@ public class CommonEventHandler {
 
 	public static void registerHandlers() {
 		PlayerEvents.ITEM_CRAFTED.register(CommonEventHandler::onMovingStorageUncrafted);
-		eventBus.addListener(TierUpgradeHandler::onTierUpgradeInteract);
+		UseEntityCallback.EVENT.register(TierUpgradeHandler::onTierUpgradeInteract);
 	}
 
 	private static void onMovingStorageUncrafted(Player player, ItemStack result, Container craftMatrix) {
