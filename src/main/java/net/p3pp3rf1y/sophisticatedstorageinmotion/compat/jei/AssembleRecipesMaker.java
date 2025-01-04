@@ -32,27 +32,6 @@ public class AssembleRecipesMaker {
 		return ClientRecipeHelper.transformAllRecipesOfTypeIntoMultiple(RecipeType.CRAFTING, originalRecipeClass, recipe -> {
 			List<RecipeHolder<CraftingRecipe>> itemGroupRecipes = new ArrayList<>();
 
-/*			List<ItemStack> results = new ArrayList<>();
-			item.addCreativeTabItems(results::add);
-
-			for (ItemStack result : results) {
-				ItemStack storageItem = StorageMinecartItem.getStorageItem(result);
-
-				NonNullList<Ingredient> ingredients = recipe.getIngredients();
-				NonNullList<Ingredient> ingredientsCopy = NonNullList.createWithCapacity(ingredients.size());
-				int i = 0;
-				for (Ingredient ingredient : ingredients) {
-					if (ingredient.getValues().length > 0 && ingredient.getValues()[0] instanceof Ingredient.ItemValue itemValue && itemValue.item().is(ModBlocks.ALL_STORAGE_TAG)) {
-						ingredientsCopy.add(i, Ingredient.of(storageItem));
-					} else {
-						ingredientsCopy.add(i, ingredient);
-					}
-					i++;
-				}
-				ResourceLocation id = ResourceLocation.fromNamespaceAndPath(SophisticatedStorageInMotion.MOD_ID, "assemble_moving_storage_" + BuiltInRegistries.ITEM.getKey(result.getItem()).getPath() + result.getComponentsPatch().toString().toLowerCase(Locale.ROOT).replaceAll("[{\",}:>=@\\[\\]\\s]", "_"));
-				itemGroupRecipes.add(new RecipeHolder<>(id, constructRecipe.construct(recipe, ingredientsCopy, result)));
-			}*/
-
 			int storageIngredientIndex = -1;
 
 			NonNullList<Ingredient> ingredients = recipe.getIngredients();

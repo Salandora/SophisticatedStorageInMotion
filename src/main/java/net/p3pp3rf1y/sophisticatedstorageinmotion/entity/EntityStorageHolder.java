@@ -321,7 +321,9 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 		if (entity.level().getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
 			ItemStack drop = new ItemStack(entity.getDropItem());
 			drop.sophisticatedCore_set(ModDataComponents.STORAGE_ITEM, SimpleItemContent.copyOf(entity.getStorageItem()));
-			drop.set(DataComponents.CUSTOM_NAME, entity.getCustomName());
+			if (entity.hasCustomName()) {
+				drop.set(DataComponents.CUSTOM_NAME, entity.getCustomName());
+			}
 			entity.spawnAtLocation(drop);
 			if (!(entity.getStorageItem().getItem() instanceof ShulkerBoxItem)) {
 				dropAllItems();
