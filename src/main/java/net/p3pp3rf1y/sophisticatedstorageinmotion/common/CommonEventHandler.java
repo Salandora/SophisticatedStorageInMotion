@@ -24,7 +24,7 @@ public class CommonEventHandler {
 
 	public static void registerHandlers() {
 		PlayerEvents.ITEM_CRAFTED.register(CommonEventHandler::onMovingStorageUncrafted);
-		eventBus.addListener(CommonEventHandler::onMovingStorageCraftedFromShulkerBox);
+		PlayerEvents.ITEM_CRAFTED.register(CommonEventHandler::onMovingStorageCraftedFromShulkerBox);
 		UseEntityCallback.EVENT.register(TierUpgradeHandler::onTierUpgradeInteract);
 	}
 
@@ -60,15 +60,14 @@ public class CommonEventHandler {
 		return true;
 	}
 
-	private static void onMovingStorageCraftedFromShulkerBox(PlayerEvent.ItemCraftedEvent event) {
-		Level level = event.getEntity().level();
-		ItemStack result = event.getCrafting();
+	private static void onMovingStorageCraftedFromShulkerBox(Player player, ItemStack result, Container craftMatrix) {
+		Level level = player.level();
 
 		if (level.isClientSide()) {
 			return;
 		}
 
-		if (!isCraftedFromShulkerBox(event.getInventory())) {
+		if (!isCraftedFromShulkerBox(craftMatrix)) {
 			return;
 		}
 

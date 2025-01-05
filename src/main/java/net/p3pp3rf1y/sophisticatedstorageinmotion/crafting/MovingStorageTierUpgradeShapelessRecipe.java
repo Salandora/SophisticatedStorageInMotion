@@ -65,7 +65,7 @@ public class MovingStorageTierUpgradeShapelessRecipe extends ShapelessRecipe imp
 
 	@Override
 	public RecipeSerializer<?> getSerializer() {
-		return ModItems.MOVING_STORAGE_TIER_UPGRADE_SHAPELESS_RECIPE_SERIALIZER.get();
+		return ModItems.MOVING_STORAGE_TIER_UPGRADE_SHAPELESS_RECIPE_SERIALIZER;
 	}
 
 	public static class Serializer extends RecipeWrapperSerializer<ShapelessRecipe, MovingStorageTierUpgradeShapelessRecipe> {
