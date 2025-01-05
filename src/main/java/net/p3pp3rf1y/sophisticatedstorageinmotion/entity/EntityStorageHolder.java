@@ -68,7 +68,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 		return NBTHelper.getBoolean(storageItem, UPGRADES_VISIBLE_TAG).orElse(false);
 	}
 
-	public void setStorageItemFrom(ItemStack stack) {
+	public void setStorageItemFrom(ItemStack stack, boolean setupDefaults) {
 		ItemStack storageItem = NBTHelper.getCompound(stack, STORAGE_ITEM_TAG).map(ItemStack::of).orElse(ItemStack.EMPTY);
 		if (storageItem.isEmpty()) {
 			ItemStack barrel = new ItemStack(ModBlocks.BARREL_ITEM);
@@ -76,7 +76,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 			setStorageItem(barrel);
 		} else {
 			setStorageItem(storageItem);
-			if (isLimitedBarrel(storageItem)) {
+			if (setupDefaults && isLimitedBarrel(storageItem)) {
 				LimitedBarrelBlock.setupDefaultSettings(getStorageWrapper(), storageWrapper instanceof MovingStorageWrapper movingStorageWrapper ? movingStorageWrapper.getNumberOfInventorySlots() : storageWrapper.getInventoryHandler().getSlotCount());
 			}
 		}

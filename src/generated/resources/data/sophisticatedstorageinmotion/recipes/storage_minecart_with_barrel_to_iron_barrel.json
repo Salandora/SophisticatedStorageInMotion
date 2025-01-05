@@ -1,0 +1,28 @@
+{
+  "type": "sophisticatedstorageinmotion:moving_storage_tier_upgrade_shaped_recipe",
+  "conditions": [
+    {
+      "type": "sophisticatedcore:item_enabled",
+      "itemRegistryName": "sophisticatedstorageinmotion:storage_minecart"
+    }
+  ],
+  "key": {
+    "M": {
+      "tag": "forge:ingots/iron"
+    },
+    "S": {
+      "type": "sophisticatedstorageinmotion:moving_storage",
+      "movingStorageItem": "sophisticatedstorageinmotion:storage_minecart",
+      "storageItem": "sophisticatedstorage:barrel"
+    }
+  },
+  "pattern": [
+    "MMM",
+    "MSM",
+    "MMM"
+  ],
+  "result": {
+    "item": "sophisticatedstorageinmotion:storage_minecart",
+    "nbt": "{storageItem:{Count:1b,id:\"sophisticatedstorage:iron_barrel\"}}"
+  }
+}

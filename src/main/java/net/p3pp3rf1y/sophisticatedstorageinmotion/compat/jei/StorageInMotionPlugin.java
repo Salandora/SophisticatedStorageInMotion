@@ -81,6 +81,8 @@ public class StorageInMotionPlugin implements IModPlugin {
 	@Override
 	public void registerRecipes(IRecipeRegistration registration) {
 		registration.addRecipes(RecipeTypes.CRAFTING, AssembleRecipesMaker.getShapelessCraftingRecipes(ModItems.STORAGE_MINECART));
+		registration.addRecipes(RecipeTypes.CRAFTING, MovingStorageTierUpgradeRecipesMaker.getShapedCraftingRecipes());
+		registration.addRecipes(RecipeTypes.CRAFTING, MovingStorageTierUpgradeRecipesMaker.getShapelessCraftingRecipes());
 	}
 
 	@Override

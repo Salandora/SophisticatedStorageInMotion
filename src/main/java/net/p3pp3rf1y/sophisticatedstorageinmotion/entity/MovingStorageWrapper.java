@@ -136,7 +136,7 @@ public class MovingStorageWrapper implements IStorageWrapper {
 
 	public int getNumberOfInventorySlots() {
 		return NBTHelper.getInt(storageStack, StorageWrapper.NUMBER_OF_INVENTORY_SLOTS_TAG).orElseGet(() -> {
-			int defaultNumberOfInventorySlots = getDefaultNumberOfInventorySlots();
+			int defaultNumberOfInventorySlots = getDefaultNumberOfInventorySlots(storageStack);
 			NBTHelper.setInteger(storageStack, StorageWrapper.NUMBER_OF_INVENTORY_SLOTS_TAG, defaultNumberOfInventorySlots);
 			stackChangeHandler.run();
 			return defaultNumberOfInventorySlots;
@@ -205,7 +205,7 @@ public class MovingStorageWrapper implements IStorageWrapper {
 
 	public int getNumberOfUpgradeSlots() {
 		return NBTHelper.getInt(storageStack, StorageWrapper.NUMBER_OF_UPGRADE_SLOTS_TAG).orElseGet(() -> {
-			int defaultNumberOfUpgradeSlots = getDefaultNumberOfUpgradeSlots();
+			int defaultNumberOfUpgradeSlots = getDefaultNumberOfUpgradeSlots(storageStack);
 			NBTHelper.setInteger(storageStack, StorageWrapper.NUMBER_OF_UPGRADE_SLOTS_TAG, defaultNumberOfUpgradeSlots);
 			stackChangeHandler.run();
 			return defaultNumberOfUpgradeSlots;
@@ -351,11 +351,11 @@ public class MovingStorageWrapper implements IStorageWrapper {
 		onContentsNbtUpdated();
 	}
 
-	public int getDefaultNumberOfInventorySlots() {
+	public static int getDefaultNumberOfInventorySlots(ItemStack storageStack) {
 		return storageStack.getItem() instanceof BlockItemBase blockItem && blockItem.getBlock() instanceof IStorageBlock storageBlock ? storageBlock.getNumberOfInventorySlots() : 0;
 	}
 
-	private int getDefaultNumberOfUpgradeSlots() {
+	public static int getDefaultNumberOfUpgradeSlots(ItemStack storageStack) {
 		return storageStack.getItem() instanceof BlockItemBase blockItem && blockItem.getBlock() instanceof IStorageBlock storageBlock ? storageBlock.getNumberOfUpgradeSlots() : 0;
 	}
 

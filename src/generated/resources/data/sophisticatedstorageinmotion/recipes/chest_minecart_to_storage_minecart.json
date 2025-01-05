@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "conditions": [
+    {
+      "type": "sophisticatedcore:item_enabled",
+      "itemRegistryName": "sophisticatedstorageinmotion:storage_minecart"
+    }
+  ],
+  "ingredients": [
+    {
+      "item": "minecraft:chest_minecart"
+    },
+    {
+      "item": "minecraft:redstone_torch"
+    }
+  ],
+  "result": {
+    "item": "sophisticatedstorageinmotion:storage_minecart",
+    "nbt": "{storageItem:{Count:1b,id:\"sophisticatedstorage:chest\",tag:{woodType:\"oak\"}}}"
+  }
+}
