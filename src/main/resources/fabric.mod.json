@@ -23,6 +23,9 @@
         "fabric-datagen": [
             "net.p3pp3rf1y.sophisticatedstorageinmotion.data.DataGenerators"
         ],
+        "emi": [
+            "net.p3pp3rf1y.sophisticatedstorageinmotion.compat.emi.EmiCompat"
+        ],
         "jei_mod_plugin": [
             "net.p3pp3rf1y.sophisticatedstorageinmotion.compat.jei.StorageInMotionPlugin"
         ]
