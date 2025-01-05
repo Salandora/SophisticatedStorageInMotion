@@ -1,0 +1,38 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "sophisticatedcore:item_enabled",
+      "itemRegistryName": "sophisticatedstorageinmotion:storage_minecart"
+    }
+  ],
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_limited_barrel_2": {
+      "conditions": {
+        "items": [
+          {
+            "items": "sophisticatedstorage:limited_barrel_2"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "sophisticatedstorageinmotion:storage_minecart_with_limited_barrel_2_to_limited_iron_barrel_2"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_limited_barrel_2"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "sophisticatedstorageinmotion:storage_minecart_with_limited_barrel_2_to_limited_iron_barrel_2"
+    ]
+  }
+}

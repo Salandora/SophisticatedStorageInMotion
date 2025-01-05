@@ -33,6 +33,7 @@ import net.p3pp3rf1y.sophisticatedstorage.item.BarrelBlockItem;
 import net.p3pp3rf1y.sophisticatedstorage.item.ShulkerBoxItem;
 import net.p3pp3rf1y.sophisticatedstorage.item.StorageBlockItem;
 import net.p3pp3rf1y.sophisticatedstorage.settings.StorageSettingsHandler;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -46,6 +47,9 @@ public class MovingStorageWrapper implements IStorageWrapper {
 
 	@Nullable
 	private InventoryHandler inventoryHandler = null;
+	@Nullable
+	private ContentsFilteredItemHandler contentsFilteredItemHandler = null;
+
 	@Nullable
 	private InventoryIOHandler inventoryIOHandler = null;
 	@Nullable
@@ -131,7 +135,7 @@ public class MovingStorageWrapper implements IStorageWrapper {
 	}
 
 	private boolean allowsEmptySlotsMatchingItemInsertsWhenLocked() {
-		return true; //TODO add check for limited barrel and in that case return false
+		return !EntityStorageHolder.isLimitedBarrel(storageStack);
 	}
 
 	public int getNumberOfInventorySlots() {
@@ -139,7 +143,7 @@ public class MovingStorageWrapper implements IStorageWrapper {
 		if (numberOfInventorySlots != null) {
 			return numberOfInventorySlots;
 		}
-		numberOfInventorySlots = getDefaultNumberOfInventorySlots();
+		numberOfInventorySlots = getDefaultNumberOfInventorySlots(storageStack);
 		storageStack.sophisticatedCore_set(ModCoreDataComponents.NUMBER_OF_INVENTORY_SLOTS, numberOfInventorySlots);
 		stackChangeHandler.run();
 
@@ -148,6 +152,16 @@ public class MovingStorageWrapper implements IStorageWrapper {
 
 	@Override
 	public ITrackedContentsItemHandler getInventoryForInputOutput() {
+		if (EntityStorageHolder.isLocked(storageStack) && allowsEmptySlotsMatchingItemInsertsWhenLocked()) {
+			if (contentsFilteredItemHandler == null) {
+				contentsFilteredItemHandler = new ContentsFilteredItemHandler(this::getInventoryIOHandler, () -> getInventoryHandler().getSlotTracker(), () -> getSettingsHandler().getTypeCategory(MemorySettingsCategory.class));
+			}
+			return contentsFilteredItemHandler;
+		}
+		return getInventoryIOHandler();
+	}
+
+	private @NotNull ITrackedContentsItemHandler getInventoryIOHandler() {
 		if (inventoryIOHandler == null) {
 			inventoryIOHandler = new InventoryIOHandler(this);
 		}
@@ -211,7 +225,7 @@ public class MovingStorageWrapper implements IStorageWrapper {
 		if (numberOfUpgradeSlots != null) {
 			return numberOfUpgradeSlots;
 		}
-		numberOfUpgradeSlots = getDefaultNumberOfUpgradeSlots();
+		numberOfUpgradeSlots = getDefaultNumberOfUpgradeSlots(storageStack);
 		storageStack.sophisticatedCore_set(ModCoreDataComponents.NUMBER_OF_UPGRADE_SLOTS, numberOfUpgradeSlots);
 		stackChangeHandler.run();
 
@@ -355,11 +369,11 @@ public class MovingStorageWrapper implements IStorageWrapper {
 		onContentsNbtUpdated();
 	}
 
-	public int getDefaultNumberOfInventorySlots() {
+	public static int getDefaultNumberOfInventorySlots(ItemStack storageStack) {
 		return storageStack.getItem() instanceof BlockItemBase blockItem && blockItem.getBlock() instanceof IStorageBlock storageBlock ? storageBlock.getNumberOfInventorySlots() : 0;
 	}
 
-	private int getDefaultNumberOfUpgradeSlots() {
+	public static int getDefaultNumberOfUpgradeSlots(ItemStack storageStack) {
 		return storageStack.getItem() instanceof BlockItemBase blockItem && blockItem.getBlock() instanceof IStorageBlock storageBlock ? storageBlock.getNumberOfUpgradeSlots() : 0;
 	}
 

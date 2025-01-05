@@ -29,6 +29,8 @@ import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.IUpgradeRenderData;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.UpgradeRenderDataType;
+import net.p3pp3rf1y.sophisticatedcore.settings.itemdisplay.ItemDisplaySettingsCategory;
+import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ITickableUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
@@ -48,7 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
+public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implements ILockable, ICountDisplay, ITierDisplay, IUpgradeDisplay, IFillLevelDisplay {
 	private final T entity;
 
 	@Nullable
@@ -64,7 +66,15 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 		return storageItem.sophisticatedCore_getOrDefault(ModDataComponents.UPGRADES_VISIBLE, false);
 	}
 
-	public void setStorageItemFrom(ItemStack stack) {
+	public static boolean areCountsVisible(ItemStack storageItem) {
+		return storageItem.getOrDefault(ModDataComponents.COUNTS_VISIBLE, true);
+	}
+
+	public static boolean areFillLevelsVisible(ItemStack storageItem) {
+		return storageItem.getOrDefault(ModDataComponents.FILL_LEVELS_VISIBLE, false);
+	}
+
+	public void setStorageItemFrom(ItemStack stack, boolean setupDefaults) {
 		SimpleItemContent storageItemContents = stack.get(ModDataComponents.STORAGE_ITEM.get());
 		if (storageItemContents == null) {
 			ItemStack barrel = new ItemStack(ModBlocks.BARREL_ITEM.get());
@@ -73,7 +83,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 		} else {
 			ItemStack storageItem = storageItemContents.copy();
 			setStorageItem(storageItem);
-			if (isLimitedBarrel(storageItem)) {
+			if (setupDefaults && isLimitedBarrel(storageItem)) {
 				LimitedBarrelBlock.setupDefaultSettings(getStorageWrapper(), storageWrapper instanceof MovingStorageWrapper movingStorageWrapper ? movingStorageWrapper.getNumberOfInventorySlots() : storageWrapper.getInventoryHandler().getSlotCount());
 			}
 		}
@@ -199,7 +209,6 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 		}
 	}
 
-
 	public static boolean isLocked(ItemStack stack) {
 		return stack.sophisticatedCore_getOrDefault(ModDataComponents.LOCKED, false);
 	}
@@ -283,6 +292,15 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 								//noop
 							}
 						});
+
+						if (renderBlockEntity instanceof LimitedBarrelBlockEntity limitedBarrelBlockEntity) {
+							if (limitedBarrelBlockEntity.shouldShowFillLevels() != EntityStorageHolder.areFillLevelsVisible(storageItem)) {
+								limitedBarrelBlockEntity.toggleFillLevelVisibility();
+							}
+							if (limitedBarrelBlockEntity.shouldShowCounts() != EntityStorageHolder.areCountsVisible(storageItem)) {
+								limitedBarrelBlockEntity.toggleCountVisibility();
+							}
+						}
 					}
 				}
 			}
@@ -334,5 +352,107 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 	private void dropAllItems() {
 		InventoryHelper.dropItems(getStorageWrapper().getInventoryHandler(), entity.level(), entity.position().x(), entity.position().y(), entity.position().z());
 		InventoryHelper.dropItems(getStorageWrapper().getUpgradeHandler(), entity.level(), entity.position().x(), entity.position().y(), entity.position().z());
+	}
+
+	@Override
+	public void toggleLock() {
+		ItemStack storageItem = entity.getStorageItem();
+		boolean locked = !isLocked(storageItem);
+
+		if (memorizesItemsWhenLocked()) {
+			if (locked) {
+				getStorageWrapper().getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).selectSlots(0, getStorageWrapper().getInventoryHandler().getSlots());
+			} else {
+				getStorageWrapper().getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).unselectAllSlots();
+				ItemDisplaySettingsCategory itemDisplaySettings = getStorageWrapper().getSettingsHandler().getTypeCategory(ItemDisplaySettingsCategory.class);
+				InventoryHelper.iterate(getStorageWrapper().getInventoryHandler(), (slot, stack) -> {
+					if (stack.isEmpty()) {
+						itemDisplaySettings.itemChanged(slot);
+					}
+				});
+			}
+		}
+
+		storageItem.set(ModDataComponents.LOCKED, locked);
+		setStorageItem(storageItem);
+	}
+
+	private boolean memorizesItemsWhenLocked() {
+		return isLimitedBarrel(entity.getStorageItem());
+	}
+
+	@Override
+	public boolean isLocked() {
+		return isLocked(entity.getStorageItem());
+	}
+
+	@Override
+	public boolean shouldShowLock() {
+		return isLockVisible(entity.getStorageItem());
+	}
+
+	@Override
+	public void toggleLockVisibility() {
+		ItemStack storageItem = entity.getStorageItem();
+		storageItem.set(ModDataComponents.LOCK_VISIBLE, !isLockVisible(storageItem));
+		setStorageItem(storageItem);
+	}
+
+	@Override
+	public boolean shouldShowCounts() {
+		return areCountsVisible(entity.getStorageItem());
+	}
+
+	@Override
+	public void toggleCountVisibility() {
+		ItemStack storageItem = entity.getStorageItem();
+		storageItem.set(ModDataComponents.COUNTS_VISIBLE, !areCountsVisible(storageItem));
+		setStorageItem(storageItem);
+	}
+
+	@Override
+	public List<Integer> getSlotCounts() {
+		return isLimitedBarrel(entity.getStorageItem()) ? getStorageWrapper().getRenderInfo().getItemDisplayRenderInfo().getSlotCounts() : List.of();
+	}
+
+	@Override
+	public boolean shouldShowFillLevels() {
+		return areFillLevelsVisible(entity.getStorageItem());
+	}
+
+	@Override
+	public void toggleFillLevelVisibility() {
+		ItemStack storageItem = entity.getStorageItem();
+		storageItem.set(ModDataComponents.FILL_LEVELS_VISIBLE, !areFillLevelsVisible(storageItem));
+		setStorageItem(storageItem);
+	}
+
+	@Override
+	public List<Float> getSlotFillLevels() {
+		return isLimitedBarrel(entity.getStorageItem()) ? getStorageWrapper().getRenderInfo().getItemDisplayRenderInfo().getSlotFillRatios() : List.of();
+	}
+
+	@Override
+	public boolean shouldShowTier() {
+		return StorageBlockItem.showsTier(entity.getStorageItem());
+	}
+
+	@Override
+	public void toggleTierVisiblity() {
+		ItemStack storageItem = entity.getStorageItem();
+		StorageBlockItem.setShowsTier(storageItem, !StorageBlockItem.showsTier(storageItem));
+		setStorageItem(storageItem);
+	}
+
+	@Override
+	public boolean shouldShowUpgrades() {
+		return areUpgradesVisible(entity.getStorageItem());
+	}
+
+	@Override
+	public void toggleUpgradesVisiblity() {
+		ItemStack storageItem = entity.getStorageItem();
+		storageItem.set(ModDataComponents.UPGRADES_VISIBLE, !areUpgradesVisible(storageItem));
+		setStorageItem(storageItem);
 	}
 }

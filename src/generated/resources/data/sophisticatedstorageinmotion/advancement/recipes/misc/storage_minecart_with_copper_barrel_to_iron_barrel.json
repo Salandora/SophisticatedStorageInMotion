@@ -1,0 +1,38 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "sophisticatedcore:item_enabled",
+      "itemRegistryName": "sophisticatedstorageinmotion:storage_minecart"
+    }
+  ],
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_copper_barrel": {
+      "conditions": {
+        "items": [
+          {
+            "items": "sophisticatedstorage:copper_barrel"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "sophisticatedstorageinmotion:storage_minecart_with_copper_barrel_to_iron_barrel"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_copper_barrel"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "sophisticatedstorageinmotion:storage_minecart_with_copper_barrel_to_iron_barrel"
+    ]
+  }
+}

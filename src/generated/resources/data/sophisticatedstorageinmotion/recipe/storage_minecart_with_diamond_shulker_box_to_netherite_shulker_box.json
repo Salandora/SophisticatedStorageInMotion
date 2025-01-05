@@ -1,0 +1,30 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "sophisticatedcore:item_enabled",
+      "itemRegistryName": "sophisticatedstorageinmotion:storage_minecart"
+    }
+  ],
+  "type": "sophisticatedstorageinmotion:moving_storage_tier_upgrade_shapeless_recipe",
+  "category": "misc",
+  "ingredients": [
+    {
+      "type": "sophisticatedstorageinmotion:moving_storage",
+      "moving_storage_item": "sophisticatedstorageinmotion:storage_minecart",
+      "storage_item": "sophisticatedstorage:diamond_shulker_box"
+    },
+    {
+      "tag": "c:ingots/netherite"
+    }
+  ],
+  "result": {
+    "components": {
+      "sophisticatedstorageinmotion:storage_item": {
+        "count": 1,
+        "id": "sophisticatedstorage:netherite_shulker_box"
+      }
+    },
+    "count": 1,
+    "id": "sophisticatedstorageinmotion:storage_minecart"
+  }
+}
