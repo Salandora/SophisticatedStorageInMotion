@@ -8,6 +8,7 @@ import dev.emi.emi.api.stack.Comparison;
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.api.widget.Bounds;
+import mezz.jei.api.constants.RecipeTypes;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -19,6 +20,7 @@ import net.p3pp3rf1y.sophisticatedcore.compat.emi.EmiSettingsGhostDragDropHandle
 import net.p3pp3rf1y.sophisticatedcore.compat.emi.EmiStorageGhostDragDropHandler;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.client.gui.MovingStorageScreen;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.client.gui.MovingStorageSettingsScreen;
+import net.p3pp3rf1y.sophisticatedstorageinmotion.compat.jei.MovingStorageTierUpgradeRecipesMaker;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.init.ModEntities;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.init.ModItems;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.item.MovingStorageItem;
@@ -44,6 +46,8 @@ public class EmiCompat implements EmiPlugin {
 		registry.addDragDropHandler(MovingStorageSettingsScreen.class, new EmiSettingsGhostDragDropHandler<>());
 
 		registerRecipes(registry, AssembleRecipesMaker.getShapelessCraftingRecipes(ModItems.STORAGE_MINECART));
+		registerRecipes(registry, MovingStorageTierUpgradeRecipesMaker.getShapedCraftingRecipes());
+		registerRecipes(registry, MovingStorageTierUpgradeRecipesMaker.getShapelessCraftingRecipes());
 
 		Comparison movingStorageComparison = Comparison.compareData(emiStack -> {
 			CompoundTag tag = new CompoundTag();
