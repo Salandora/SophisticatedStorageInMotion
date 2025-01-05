@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.item;
 
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
@@ -25,7 +26,7 @@ public abstract class MovingStorageItem extends ItemBase {
 	}
 
 	public static void setStorageItem(ItemStack movingStorageItem, ItemStack storageItem) {
-		NBTHelper.setCompoundNBT(movingStorageItem, EntityStorageHolder.STORAGE_ITEM_TAG, storageItem.serializeNBT());
+		NBTHelper.setCompoundNBT(movingStorageItem, EntityStorageHolder.STORAGE_ITEM_TAG, storageItem.save(new CompoundTag()));
 	}
 
 	public static Optional<Item> getStorageItemType(ItemStack stack) {

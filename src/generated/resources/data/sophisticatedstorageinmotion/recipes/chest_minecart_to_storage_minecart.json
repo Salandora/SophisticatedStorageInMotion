@@ -2,7 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "conditions": [
     {
-      "type": "sophisticatedcore:item_enabled",
+      "condition": "sophisticatedcore:item_enabled",
       "itemRegistryName": "sophisticatedstorageinmotion:storage_minecart"
     }
   ],

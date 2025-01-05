@@ -73,28 +73,28 @@ public class MovingStorageIngredient implements CustomIngredient {
 
 		@Override
 		public MovingStorageIngredient read(FriendlyByteBuf buffer) {
-			return new MovingStorageIngredient(fromRegistryName(buffer.readInt()), fromRegistryName(buffer.readInt()));
+			return new MovingStorageIngredient(fromRegistryName(buffer.readUtf()), fromRegistryName(buffer.readUtf()));
 		}
 
 		@Override
 		public MovingStorageIngredient read(JsonObject json) {
-			return new MovingStorageIngredient(fromRegistryName(json.get("movingStorageItem").getAsInt()), fromRegistryName(json.get("storageItem").getAsInt()));
+			return new MovingStorageIngredient(fromRegistryName(json.get("movingStorageItem").getAsString()), fromRegistryName(json.get("storageItem").getAsString()));
 		}
 
 		@Override
 		public void write(JsonObject json, MovingStorageIngredient ingredient) {
-			json.addProperty("movingStorageItem", BuiltInRegistries.ITEM.getId(ingredient.movingStorageItem.value()));
-			json.addProperty("storageItem", BuiltInRegistries.ITEM.getId(ingredient.storageItem.value()));
+			json.addProperty("movingStorageItem", BuiltInRegistries.ITEM.getKey(ingredient.movingStorageItem.value()).toString());
+			json.addProperty("storageItem", BuiltInRegistries.ITEM.getKey(ingredient.storageItem.value()).toString());
 		}
 
 		@Override
 		public void write(FriendlyByteBuf buffer, MovingStorageIngredient ingredient) {
-			buffer.writeInt(BuiltInRegistries.ITEM.getId(ingredient.movingStorageItem.value()));
-			buffer.writeInt(BuiltInRegistries.ITEM.getId(ingredient.storageItem.value()));
+			buffer.writeUtf(BuiltInRegistries.ITEM.getKey(ingredient.movingStorageItem.value()).toString());
+			buffer.writeUtf(BuiltInRegistries.ITEM.getKey(ingredient.storageItem.value()).toString());
 		}
 
-		private Holder<Item> fromRegistryName(int id) {
-			return BuiltInRegistries.ITEM.getHolder(id).orElseThrow();
+		private Holder<Item> fromRegistryName(String registryName) {
+			return BuiltInRegistries.ITEM.wrapAsHolder(BuiltInRegistries.ITEM.get(new ResourceLocation(registryName)));
 		}
 	}
 }
