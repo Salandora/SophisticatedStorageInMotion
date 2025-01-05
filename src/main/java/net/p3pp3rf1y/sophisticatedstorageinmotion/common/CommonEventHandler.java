@@ -26,6 +26,7 @@ public class CommonEventHandler {
 		PlayerEvents.ITEM_CRAFTED.register(CommonEventHandler::onMovingStorageUncrafted);
 		PlayerEvents.ITEM_CRAFTED.register(CommonEventHandler::onMovingStorageCraftedFromShulkerBox);
 		UseEntityCallback.EVENT.register(TierUpgradeHandler::onTierUpgradeInteract);
+		UseEntityCallback.EVENT.register(StorageToolHandler::onStorageToolInteract);
 	}
 
 	private static void onMovingStorageUncrafted(Player player, ItemStack result, Container craftMatrix) {

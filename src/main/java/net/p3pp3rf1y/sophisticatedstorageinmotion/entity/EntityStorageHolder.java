@@ -1,7 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.entity;
 
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
-import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -10,7 +9,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.piglin.PiglinAi;
@@ -28,6 +26,8 @@ import net.p3pp3rf1y.sophisticatedcore.client.render.UpgradeRenderRegistry;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.IUpgradeRenderData;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.UpgradeRenderDataType;
+import net.p3pp3rf1y.sophisticatedcore.settings.itemdisplay.ItemDisplaySettingsCategory;
+import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ITickableUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.MenuProviderHelper;
@@ -47,12 +47,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
+public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implements ILockable, ICountDisplay, ITierDisplay, IUpgradeDisplay, IFillLevelDisplay {
 	public static final String UPGRADES_VISIBLE_TAG = "upgradesVisible";
 	public static final String STORAGE_ITEM_TAG = "storageItem";
 	public static final String SORT_BY_TAG = "sortBy";
 	private static final String LOCKED_TAG = "locked";
 	private static final String LOCK_VISIBLE_TAG = "lockVisible";
+	private static final String COUNTS_VISIBLE_TAG = "countsVisible";
+	private static final String FILL_LEVELS_VISIBLE_TAG = "fillLevelsVisible";
 	private final T entity;
 
 	@Nullable
@@ -66,6 +68,14 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 
 	public static boolean areUpgradesVisible(ItemStack storageItem) {
 		return NBTHelper.getBoolean(storageItem, UPGRADES_VISIBLE_TAG).orElse(false);
+	}
+
+	public static boolean areCountsVisible(ItemStack storageItem) {
+		return NBTHelper.getBoolean(storageItem, COUNTS_VISIBLE_TAG).orElse(true);
+	}
+
+	public static boolean areFillLevelsVisible(ItemStack storageItem) {
+		return NBTHelper.getBoolean(storageItem, FILL_LEVELS_VISIBLE_TAG).orElse(false);
 	}
 
 	public void setStorageItemFrom(ItemStack stack, boolean setupDefaults) {
@@ -101,6 +111,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 		entity.setStorageItem(storageItem);
 		storageWrapper = NoopStorageWrapper.INSTANCE; //reset storage wrapper to force update when it's next requested
 		renderBlockEntity = null;
+		entity.sophisticatedInvalidateCaps();
 	}
 
 	public void updateStorageWrapper() {
@@ -197,7 +208,6 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 		}
 	}
 
-
 	public static boolean isLocked(ItemStack stack) {
 		return NBTHelper.getBoolean(stack, LOCKED_TAG).orElse(false);
 	}
@@ -281,6 +291,15 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 								//noop
 							}
 						});
+
+						if (renderBlockEntity instanceof LimitedBarrelBlockEntity limitedBarrelBlockEntity) {
+							if (limitedBarrelBlockEntity.shouldShowFillLevels() != EntityStorageHolder.areFillLevelsVisible(storageItem)) {
+								limitedBarrelBlockEntity.toggleFillLevelVisibility();
+							}
+							if (limitedBarrelBlockEntity.shouldShowCounts() != EntityStorageHolder.areCountsVisible(storageItem)) {
+								limitedBarrelBlockEntity.toggleCountVisibility();
+							}
+						}
 					}
 				}
 			}
@@ -299,7 +318,6 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 	}
 
 	public InteractionResult openContainerMenu(ServerPlayer player) {
-		// TODO: Fix this
 		player.openMenu(MenuProviderHelper.createMenuProvider((w, p, pl) -> createMenu(w, pl), entity.getName(), buffer -> buffer.writeInt(entity.getId())));
 		return player.level().isClientSide ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
 	}
@@ -333,5 +351,107 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 	private void dropAllItems() {
 		InventoryHelper.dropItems(getStorageWrapper().getInventoryHandler(), entity.level(), entity.position().x(), entity.position().y(), entity.position().z());
 		InventoryHelper.dropItems(getStorageWrapper().getUpgradeHandler(), entity.level(), entity.position().x(), entity.position().y(), entity.position().z());
+	}
+
+	@Override
+	public void toggleLock() {
+		ItemStack storageItem = entity.getStorageItem();
+		boolean locked = !isLocked(storageItem);
+
+		if (memorizesItemsWhenLocked()) {
+			if (locked) {
+				getStorageWrapper().getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).selectSlots(0, getStorageWrapper().getInventoryHandler().getSlotCount());
+			} else {
+				getStorageWrapper().getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).unselectAllSlots();
+				ItemDisplaySettingsCategory itemDisplaySettings = getStorageWrapper().getSettingsHandler().getTypeCategory(ItemDisplaySettingsCategory.class);
+				InventoryHelper.iterate(getStorageWrapper().getInventoryHandler(), (slot, stack) -> {
+					if (stack.isEmpty()) {
+						itemDisplaySettings.itemChanged(slot);
+					}
+				});
+			}
+		}
+
+		storageItem.getOrCreateTag().putBoolean(LOCKED_TAG, locked);
+		setStorageItem(storageItem);
+	}
+
+	private boolean memorizesItemsWhenLocked() {
+		return isLimitedBarrel(entity.getStorageItem());
+	}
+
+	@Override
+	public boolean isLocked() {
+		return isLocked(entity.getStorageItem());
+	}
+
+	@Override
+	public boolean shouldShowLock() {
+		return isLockVisible(entity.getStorageItem());
+	}
+
+	@Override
+	public void toggleLockVisibility() {
+		ItemStack storageItem = entity.getStorageItem();
+		storageItem.getOrCreateTag().putBoolean(LOCK_VISIBLE_TAG, !isLockVisible(storageItem));
+		setStorageItem(storageItem);
+	}
+
+	@Override
+	public boolean shouldShowCounts() {
+		return areCountsVisible(entity.getStorageItem());
+	}
+
+	@Override
+	public void toggleCountVisibility() {
+		ItemStack storageItem = entity.getStorageItem();
+		storageItem.getOrCreateTag().putBoolean(COUNTS_VISIBLE_TAG, !areCountsVisible(storageItem));
+		setStorageItem(storageItem);
+	}
+
+	@Override
+	public List<Integer> getSlotCounts() {
+		return isLimitedBarrel(entity.getStorageItem()) ? getStorageWrapper().getRenderInfo().getItemDisplayRenderInfo().getSlotCounts() : List.of();
+	}
+
+	@Override
+	public boolean shouldShowFillLevels() {
+		return areFillLevelsVisible(entity.getStorageItem());
+	}
+
+	@Override
+	public void toggleFillLevelVisibility() {
+		ItemStack storageItem = entity.getStorageItem();
+		storageItem.getOrCreateTag().putBoolean(FILL_LEVELS_VISIBLE_TAG, !areFillLevelsVisible(storageItem));
+		setStorageItem(storageItem);
+	}
+
+	@Override
+	public List<Float> getSlotFillLevels() {
+		return isLimitedBarrel(entity.getStorageItem()) ? getStorageWrapper().getRenderInfo().getItemDisplayRenderInfo().getSlotFillRatios() : List.of();
+	}
+
+	@Override
+	public boolean shouldShowTier() {
+		return StorageBlockItem.showsTier(entity.getStorageItem());
+	}
+
+	@Override
+	public void toggleTierVisiblity() {
+		ItemStack storageItem = entity.getStorageItem();
+		StorageBlockItem.setShowsTier(storageItem, !StorageBlockItem.showsTier(storageItem));
+		setStorageItem(storageItem);
+	}
+
+	@Override
+	public boolean shouldShowUpgrades() {
+		return areUpgradesVisible(entity.getStorageItem());
+	}
+
+	@Override
+	public void toggleUpgradesVisiblity() {
+		ItemStack storageItem = entity.getStorageItem();
+		storageItem.getOrCreateTag().putBoolean(UPGRADES_VISIBLE_TAG, !areUpgradesVisible(storageItem));
+		setStorageItem(storageItem);
 	}
 }

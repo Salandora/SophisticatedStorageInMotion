@@ -1,8 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.entity;
 
-import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
 import net.fabricmc.fabric.api.lookup.v1.entity.EntityApiLookup;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.Direction;
@@ -28,6 +26,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.p3pp3rf1y.porting_lib.base.util.LazyOptional;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.util.Capabilities;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
@@ -161,16 +160,17 @@ public class StorageMinecart extends MinecartChest implements IMovingStorageEnti
 	public void remove(RemovalReason pReason) {
 		//overriden to prevent default minecart logic from using container overrides to drop items when in some cases they are not supposed to be dropped
 		setRemoved(pReason);
-		invalidateCaps();
+		sophisticatedInvalidateCaps();
 	}
 
-	public void invalidateCaps() {
+	@Override
+	public void sophisticatedInvalidateCaps() {
 		itemHandler.invalidate();
 	}
 
 	@Override
 	public int getContainerSize() {
-		return getStorageHolder().getStorageWrapper().getInventoryHandler().getSlotCount();
+		return getStorageHolder().getStorageWrapper().getInventoryForInputOutput().getSlotCount();
 	}
 
 	@Override
@@ -213,7 +213,7 @@ public class StorageMinecart extends MinecartChest implements IMovingStorageEnti
 
 	@Override
 	public ItemStack removeChestVehicleItemNoUpdate(int slot) {
-		InventoryHandler inventoryHandler = getStorageHolder().getStorageWrapper().getInventoryHandler();
+		ITrackedContentsItemHandler inventoryHandler = getStorageHolder().getStorageWrapper().getInventoryForInputOutput();
 		ItemStack stack = inventoryHandler.getStackInSlot(slot);
 		long extracted;
 		try (Transaction ctx = Transaction.openOuter()) {
@@ -225,12 +225,12 @@ public class StorageMinecart extends MinecartChest implements IMovingStorageEnti
 
 	@Override
 	public ItemStack getChestVehicleItem(int slot) {
-		return getStorageHolder().getStorageWrapper().getInventoryHandler().getStackInSlot(slot);
+		return getStorageHolder().getStorageWrapper().getInventoryForInputOutput().getStackInSlot(slot);
 	}
 
 	@Override
 	public ItemStack removeChestVehicleItem(int slot, int amount) {
-		InventoryHandler inventoryHandler = getStorageHolder().getStorageWrapper().getInventoryHandler();
+		ITrackedContentsItemHandler inventoryHandler = getStorageHolder().getStorageWrapper().getInventoryForInputOutput();
 		ItemStack stack = inventoryHandler.getStackInSlot(slot);
 		long extracted;
 		try (Transaction ctx = Transaction.openOuter()) {
@@ -242,7 +242,12 @@ public class StorageMinecart extends MinecartChest implements IMovingStorageEnti
 
 	@Override
 	public void setChestVehicleItem(int slot, ItemStack stack) {
-		getStorageHolder().getStorageWrapper().getInventoryHandler().setStackInSlot(slot, stack);
+		getStorageHolder().getStorageWrapper().getInventoryForInputOutput().setStackInSlot(slot, stack);
+	}
+
+	@Override
+	public boolean canPlaceItem(int pIndex, ItemStack pStack) {
+		return getStorageHolder().getStorageWrapper().getInventoryForInputOutput().isItemValid(pIndex, ItemVariant.of(pStack), pStack.getCount());
 	}
 
 	@Override
