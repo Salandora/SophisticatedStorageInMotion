@@ -53,7 +53,7 @@ public class TierUpgradeHandler {
 			return InteractionResult.PASS;
 		}
 
-		if (entity instanceof IMovingStorageEntity movingStorage) {
+		if (entity instanceof IMovingStorageEntity movingStorage && !movingStorage.getStorageHolder().isOpen()) {
 			return upgradeEntity(entity, player, tierUpgrade, tierDefinitions, movingStorage.getStorageItem().getItem(), movingStorage.getStorageItem());
 		} else if (entity instanceof MinecartChest minecartChest) {
 			return upgradeEntity(minecartChest, player, tierUpgrade, tierDefinitions, Items.CHEST, ItemStack.EMPTY);
