@@ -1,8 +1,9 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.init;
 
+import io.github.fabricators_of_create.porting_lib.util.DeferredHolder;
 import io.github.fabricators_of_create.porting_lib.util.DeferredRegister;
-import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
+import net.fabricmc.fabric.api.recipe.v1.ingredient.CustomIngredientSerializer;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -36,9 +37,6 @@ public class ModItems {
 	public static final Supplier<RecipeSerializer<?>> MOVING_STORAGE_TIER_UPGRADE_SHAPED_RECIPE_SERIALIZER = RECIPE_SERIALIZERS.register("moving_storage_tier_upgrade_shaped_recipe", MovingStorageTierUpgradeShapedRecipe.Serializer::new);
 	public static final Supplier<RecipeSerializer<?>> MOVING_STORAGE_TIER_UPGRADE_SHAPELESS_RECIPE_SERIALIZER = RECIPE_SERIALIZERS.register("moving_storage_tier_upgrade_shapeless_recipe", MovingStorageTierUpgradeShapelessRecipe.Serializer::new);
 
-	private static final DeferredRegister<IngredientType<?>> INGREDIENT_TYPES = DeferredRegister.create(NeoForgeRegistries.Keys.INGREDIENT_TYPES, SophisticatedStorageInMotion.MOD_ID);
-	public static final Supplier<IngredientType<MovingStorageIngredient>> MOVING_STORAGE_INGREDIENT_TYPE = INGREDIENT_TYPES.register("moving_storage", () -> new IngredientType<>(MovingStorageIngredient.CODEC));
-
 	public static Supplier<CreativeModeTab> CREATIVE_TAB = CREATIVE_MODE_TABS.register("main", () ->
 			FabricItemGroup.builder().icon(() -> new ItemStack(STORAGE_MINECART.get()))
 					.title(Component.translatable("itemGroup.sophisticatedstorageinmotion"))
@@ -48,11 +46,12 @@ public class ModItems {
 					.build());
 
 	public static void registerHandlers() {
+
 		ITEMS.register();
 		CREATIVE_MODE_TABS.register();
 		// ATTACHMENT_TYPES.register();
 		RECIPE_SERIALIZERS.register();
-		INGREDIENT_TYPES.register(modBus);
+		CustomIngredientSerializer.register(MovingStorageIngredient.SERIALIZER);
 	}
 
 	public static void registerDispenseBehavior() {

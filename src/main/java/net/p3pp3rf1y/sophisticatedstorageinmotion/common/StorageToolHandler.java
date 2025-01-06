@@ -1,15 +1,19 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.common;
 
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.EntityHitResult;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedstorage.block.*;
 import net.p3pp3rf1y.sophisticatedstorage.init.ModItems;
 import net.p3pp3rf1y.sophisticatedstorage.item.StorageToolItem;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.EntityStorageHolder;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.IMovingStorageEntity;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
 
@@ -17,19 +21,13 @@ public class StorageToolHandler {
 	private StorageToolHandler() {
 	}
 
-	public static void onStorageToolInteract(PlayerInteractEvent.EntityInteract event) {
-		Player player = event.getEntity();
-		if (!(event.getTarget() instanceof IMovingStorageEntity movingStorageEntity)) {
-			return;
+	public static InteractionResult onStorageToolInteract(Player player, Level world, InteractionHand hand, Entity entity, @Nullable EntityHitResult hitResult) {
+		if (!(entity instanceof IMovingStorageEntity movingStorageEntity)) {
+			return InteractionResult.PASS;
 		}
 
-		InteractionResult result = InventoryHelper.getItemFromEitherHand(player, ModItems.STORAGE_TOOL.get())
+		return InventoryHelper.getItemFromEitherHand(player, ModItems.STORAGE_TOOL.get())
 				.map(storageTool -> tryStorageToolInteract(movingStorageEntity, storageTool)).orElse(InteractionResult.PASS);
-
-		if (result.consumesAction()) {
-			event.setCanceled(true);
-			event.setCancellationResult(result);
-		}
 	}
 
 	private static InteractionResult tryStorageToolInteract(IMovingStorageEntity movingStorageEntity, ItemStack storageTool) {

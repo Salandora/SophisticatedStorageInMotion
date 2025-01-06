@@ -67,11 +67,11 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 	}
 
 	public static boolean areCountsVisible(ItemStack storageItem) {
-		return storageItem.getOrDefault(ModDataComponents.COUNTS_VISIBLE, true);
+		return storageItem.sophisticatedCore_getOrDefault(ModDataComponents.COUNTS_VISIBLE, true);
 	}
 
 	public static boolean areFillLevelsVisible(ItemStack storageItem) {
-		return storageItem.getOrDefault(ModDataComponents.FILL_LEVELS_VISIBLE, false);
+		return storageItem.sophisticatedCore_getOrDefault(ModDataComponents.FILL_LEVELS_VISIBLE, false);
 	}
 
 	public void setStorageItemFrom(ItemStack stack, boolean setupDefaults) {
@@ -361,7 +361,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 
 		if (memorizesItemsWhenLocked()) {
 			if (locked) {
-				getStorageWrapper().getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).selectSlots(0, getStorageWrapper().getInventoryHandler().getSlots());
+				getStorageWrapper().getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).selectSlots(0, getStorageWrapper().getInventoryHandler().getSlotCount());
 			} else {
 				getStorageWrapper().getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).unselectAllSlots();
 				ItemDisplaySettingsCategory itemDisplaySettings = getStorageWrapper().getSettingsHandler().getTypeCategory(ItemDisplaySettingsCategory.class);
@@ -373,7 +373,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 			}
 		}
 
-		storageItem.set(ModDataComponents.LOCKED, locked);
+		storageItem.sophisticatedCore_set(ModDataComponents.LOCKED, locked);
 		setStorageItem(storageItem);
 	}
 
@@ -394,7 +394,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 	@Override
 	public void toggleLockVisibility() {
 		ItemStack storageItem = entity.getStorageItem();
-		storageItem.set(ModDataComponents.LOCK_VISIBLE, !isLockVisible(storageItem));
+		storageItem.sophisticatedCore_set(ModDataComponents.LOCK_VISIBLE, !isLockVisible(storageItem));
 		setStorageItem(storageItem);
 	}
 
@@ -406,7 +406,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 	@Override
 	public void toggleCountVisibility() {
 		ItemStack storageItem = entity.getStorageItem();
-		storageItem.set(ModDataComponents.COUNTS_VISIBLE, !areCountsVisible(storageItem));
+		storageItem.sophisticatedCore_set(ModDataComponents.COUNTS_VISIBLE, !areCountsVisible(storageItem));
 		setStorageItem(storageItem);
 	}
 
@@ -423,7 +423,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 	@Override
 	public void toggleFillLevelVisibility() {
 		ItemStack storageItem = entity.getStorageItem();
-		storageItem.set(ModDataComponents.FILL_LEVELS_VISIBLE, !areFillLevelsVisible(storageItem));
+		storageItem.sophisticatedCore_set(ModDataComponents.FILL_LEVELS_VISIBLE, !areFillLevelsVisible(storageItem));
 		setStorageItem(storageItem);
 	}
 
@@ -452,7 +452,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 	@Override
 	public void toggleUpgradesVisiblity() {
 		ItemStack storageItem = entity.getStorageItem();
-		storageItem.set(ModDataComponents.UPGRADES_VISIBLE, !areUpgradesVisible(storageItem));
+		storageItem.sophisticatedCore_set(ModDataComponents.UPGRADES_VISIBLE, !areUpgradesVisible(storageItem));
 		setStorageItem(storageItem);
 	}
 }

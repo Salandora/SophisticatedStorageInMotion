@@ -2,28 +2,27 @@ package net.p3pp3rf1y.sophisticatedstorageinmotion.crafting;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.fabricmc.fabric.api.recipe.v1.ingredient.CustomIngredient;
+import net.fabricmc.fabric.api.recipe.v1.ingredient.CustomIngredientSerializer;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.common.crafting.ICustomIngredient;
-import net.neoforged.neoforge.common.crafting.IngredientType;
 import net.p3pp3rf1y.sophisticatedcore.util.BlockItemBase;
-import net.p3pp3rf1y.sophisticatedstorageinmotion.init.ModItems;
+import net.p3pp3rf1y.sophisticatedstorageinmotion.SophisticatedStorageInMotion;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.item.MovingStorageItem;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
-public class MovingStorageIngredient implements ICustomIngredient {
-	public static final MapCodec<MovingStorageIngredient> CODEC = RecordCodecBuilder.mapCodec(
-			instance -> instance.group(
-					ItemStack.ITEM_NON_AIR_CODEC.fieldOf("moving_storage_item").forGetter(ingredient -> ingredient.movingStorageItem),
-							ItemStack.ITEM_NON_AIR_CODEC.fieldOf("storage_item").forGetter(ingredient -> ingredient.storageItem)
-					)
-					.apply(instance, MovingStorageIngredient::new)
-	);
+public class MovingStorageIngredient implements CustomIngredient {
+	public static final CustomIngredientSerializer<MovingStorageIngredient> SERIALIZER = new Serializer();
+
 	private final Holder<Item> movingStorageItem;
 	private final Holder<Item> storageItem;
 	private final ItemStack[] movingStorageStacks;
@@ -31,6 +30,7 @@ public class MovingStorageIngredient implements ICustomIngredient {
 	private MovingStorageIngredient(Holder<Item> movingStorageItem, Holder<Item> storageItem) {
 		this.movingStorageItem = movingStorageItem;
 		this.storageItem = storageItem;
+
 		List<ItemStack> storageItemCreativeTabItems = new ArrayList<>();
 		if (storageItem.value() instanceof BlockItemBase itemBase) {
 			itemBase.addCreativeTabItems(storageItemCreativeTabItems::add);
@@ -54,17 +54,55 @@ public class MovingStorageIngredient implements ICustomIngredient {
 	}
 
 	@Override
-	public Stream<ItemStack> getItems() {
-		return Stream.of(movingStorageStacks);
+	public List<ItemStack> getMatchingStacks() {
+		return List.of(movingStorageStacks);
 	}
 
 	@Override
-	public boolean isSimple() {
-		return false;
+	public boolean requiresTesting() {
+		return true;
+	}
+
+	private Holder<Item> getMovingStorageItem() {
+		return movingStorageItem;
+	}
+
+	private Holder<Item> getStorageItem() {
+		return storageItem;
 	}
 
 	@Override
-	public IngredientType<?> getType() {
-		return ModItems.MOVING_STORAGE_INGREDIENT_TYPE.get();
+	public CustomIngredientSerializer<?> getSerializer() {
+		return SERIALIZER;
+	}
+
+	private static class Serializer implements CustomIngredientSerializer<MovingStorageIngredient> {
+		public static final MapCodec<MovingStorageIngredient> CODEC = RecordCodecBuilder.mapCodec(
+				instance -> instance.group(
+								ItemStack.ITEM_NON_AIR_CODEC.fieldOf("moving_storage_item").forGetter(ingredient -> ingredient.movingStorageItem),
+								ItemStack.ITEM_NON_AIR_CODEC.fieldOf("storage_item").forGetter(ingredient -> ingredient.storageItem)
+						)
+						.apply(instance, MovingStorageIngredient::new)
+		);
+		public static final StreamCodec<RegistryFriendlyByteBuf, MovingStorageIngredient> PACKET_CODEC = StreamCodec.composite(
+				ByteBufCodecs.holderRegistry(Registries.ITEM), MovingStorageIngredient::getMovingStorageItem,
+				ByteBufCodecs.holderRegistry(Registries.ITEM), MovingStorageIngredient::getStorageItem,
+				MovingStorageIngredient::new
+		);
+
+		@Override
+		public ResourceLocation getIdentifier() {
+			return SophisticatedStorageInMotion.getRL("moving_storage");
+		}
+
+		@Override
+		public MapCodec<MovingStorageIngredient> getCodec(boolean allowEmpty) {
+			return CODEC;
+		}
+
+		@Override
+		public StreamCodec<RegistryFriendlyByteBuf, MovingStorageIngredient> getPacketCodec() {
+			return PACKET_CODEC;
+		}
 	}
 }

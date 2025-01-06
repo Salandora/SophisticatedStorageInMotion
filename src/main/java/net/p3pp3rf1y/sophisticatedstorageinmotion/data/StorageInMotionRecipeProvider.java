@@ -1,17 +1,22 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.data;
 
+import io.github.fabricators_of_create.porting_lib.util.DeferredHolder;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.data.recipes.*;
+import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.data.recipes.SpecialRecipeBuilder;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.properties.WoodType;
+import net.p3pp3rf1y.sophisticatedcore.crafting.SCShapedRecipeBuilder;
+import net.p3pp3rf1y.sophisticatedcore.crafting.SCShapelessRecipeBuilder;
 import net.p3pp3rf1y.sophisticatedcore.crafting.ShapeBasedRecipeBuilder;
 import net.p3pp3rf1y.sophisticatedcore.crafting.ShapelessBasedRecipeBuilder;
 import net.p3pp3rf1y.sophisticatedstorage.init.ModBlocks;
@@ -39,7 +44,7 @@ public class StorageInMotionRecipeProvider extends FabricRecipeProvider {
 				.unlockedBy("has_sophisticated_storage", has(ModBlocks.ALL_STORAGE_TAG))
 				.save(recipeOutput);
 
-		ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, MovingStorageItem.createWithStorage(ModItems.STORAGE_MINECART.get(), WoodStorageBlockItem.setWoodType(new ItemStack(ModBlocks.CHEST_ITEM.get()), WoodType.OAK)))
+		SCShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, MovingStorageItem.createWithStorage(ModItems.STORAGE_MINECART.get(), WoodStorageBlockItem.setWoodType(new ItemStack(ModBlocks.CHEST_ITEM.get()), WoodType.OAK)))
 				.requires(Items.CHEST_MINECART)
 				.requires(Items.REDSTONE_TORCH)
 				.unlockedBy("has_chest_minecart", has(Items.CHEST_MINECART))
@@ -98,27 +103,29 @@ public class StorageInMotionRecipeProvider extends FabricRecipeProvider {
 		addMovingStorageDiamondToNetheriteTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.LIMITED_DIAMOND_BARREL_4_ITEM.get(), ModBlocks.LIMITED_NETHERITE_BARREL_4_ITEM.get());
 	}
 
-	private static void addCheaperMovingStorageTierUpgradeRecipe(RecipeOutput recipeOutput, Holder<Item> movingStorageItem, Item storageItem, Item upgradedStorageItem, TagKey<Item> material) {
+	private static void addCheaperMovingStorageTierUpgradeRecipe(RecipeOutput recipeOutput, DeferredHolder<Item, ?> movingStorageItem, Item storageItem, Item upgradedStorageItem, TagKey<Item> material) {
 		addMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, storageItem, upgradedStorageItem, material, builder -> builder.pattern(" M ").pattern("MSM").pattern(" M "));
 	}
 
-	private static void addMovingStorageTierUpgradeRecipe(RecipeOutput recipeOutput, Holder<Item> movingStorageItem, Item storageItem, Item upgradedStorageItem, TagKey<Item> material) {
+	private static void addMovingStorageTierUpgradeRecipe(RecipeOutput recipeOutput, DeferredHolder<Item, ?> movingStorageItem, Item storageItem, Item upgradedStorageItem, TagKey<Item> material) {
 		addMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, storageItem, upgradedStorageItem, material, builder -> builder.pattern("MMM").pattern("MSM").pattern("MMM"));
 	}
 
-	private static void addMovingStorageTierUpgradeRecipe(RecipeOutput recipeOutput, Holder<Item> movingStorageItem, Item storageItem, Item upgradedStorageItem, TagKey<Item> material, UnaryOperator<ShapedRecipeBuilder> patternInit) {
+	private static void addMovingStorageTierUpgradeRecipe(RecipeOutput recipeOutput, DeferredHolder<Item, ?> movingStorageItem, Item storageItem, Item upgradedStorageItem, TagKey<Item> material, UnaryOperator<SCShapedRecipeBuilder> patternInit) {
 		String storageItemPath = BuiltInRegistries.ITEM.getKey(storageItem).getPath();
+		Holder<Item> movingStorageItemHolder = BuiltInRegistries.ITEM.getHolder(movingStorageItem.getKey()).orElseThrow();
 		patternInit.apply(ShapeBasedRecipeBuilder.shaped(MovingStorageItem.createWithStorage(movingStorageItem.value(), new ItemStack(upgradedStorageItem)), MovingStorageTierUpgradeShapedRecipe::new))
-				.define('S', MovingStorageIngredient.of(movingStorageItem, storageItem).toVanilla())
+				.define('S', MovingStorageIngredient.of(movingStorageItemHolder, storageItem).toVanilla())
 				.define('M', material)
 				.unlockedBy("has_" + storageItemPath, has(storageItem))
 				.save(recipeOutput, SophisticatedStorageInMotion.getRegistryName(movingStorageItem.getKey().location().getPath() + "_with_" + storageItemPath + "_to_" + BuiltInRegistries.ITEM.getKey(upgradedStorageItem).getPath()));
 	}
 
-	private static void addMovingStorageDiamondToNetheriteTierUpgradeRecipe(RecipeOutput recipeOutput, Holder<Item> movingStorageItem, Item storageItem, Item upgradedStorageItem) {
+	private static void addMovingStorageDiamondToNetheriteTierUpgradeRecipe(RecipeOutput recipeOutput, DeferredHolder<Item, ?> movingStorageItem, Item storageItem, Item upgradedStorageItem) {
 		String storageItemPath = BuiltInRegistries.ITEM.getKey(storageItem).getPath();
+		Holder<Item> movingStorageItemHolder = BuiltInRegistries.ITEM.getHolder(movingStorageItem.getKey()).orElseThrow();
 		ShapelessBasedRecipeBuilder.shapeless(MovingStorageItem.createWithStorage(movingStorageItem.value(), new ItemStack(upgradedStorageItem)), MovingStorageTierUpgradeShapelessRecipe::new)
-				.requires(MovingStorageIngredient.of(movingStorageItem, storageItem).toVanilla())
+				.requires(MovingStorageIngredient.of(movingStorageItemHolder, storageItem).toVanilla())
 				.requires(ConventionalItemTags.NETHERITE_INGOTS)
 				.unlockedBy("has_" + storageItemPath, has(storageItem))
 				.save(recipeOutput, SophisticatedStorageInMotion.getRegistryName(movingStorageItem.getKey().location().getPath() + "_with_" + storageItemPath + "_to_" + BuiltInRegistries.ITEM.getKey(upgradedStorageItem).getPath()));

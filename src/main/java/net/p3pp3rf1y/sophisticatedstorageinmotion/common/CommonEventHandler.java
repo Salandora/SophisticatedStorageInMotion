@@ -27,9 +27,9 @@ public class CommonEventHandler {
 
 	public static void registerHandlers() {
 		PlayerEvents.ITEM_CRAFTED.register(CommonEventHandler::onMovingStorageUncrafted);
-		eventBus.addListener(CommonEventHandler::onMovingStorageCraftedFromShulkerBox);
+		PlayerEvents.ITEM_CRAFTED.register(CommonEventHandler::onMovingStorageCraftedFromShulkerBox);
 		UseEntityCallback.EVENT.register(TierUpgradeHandler::onTierUpgradeInteract);
-		eventBus.addListener(StorageToolHandler::onStorageToolInteract);
+		UseEntityCallback.EVENT.register(StorageToolHandler::onStorageToolInteract);
 	}
 
 	private static void onMovingStorageUncrafted(Player player, ItemStack result, Container craftMatrix) {
@@ -68,15 +68,14 @@ public class CommonEventHandler {
 		return true;
 	}
 
-	private static void onMovingStorageCraftedFromShulkerBox(PlayerEvent.ItemCraftedEvent event) {
-		Level level = event.getEntity().level();
-		ItemStack result = event.getCrafting();
+	private static void onMovingStorageCraftedFromShulkerBox(Player player, ItemStack result, Container craftMatrix) {
+		Level level = player.level();
 
 		if (level.isClientSide()) {
 			return;
 		}
 
-		if (!isCraftedFromShulkerBox(event.getInventory())) {
+		if (!isCraftedFromShulkerBox(craftMatrix)) {
 			return;
 		}
 
@@ -90,7 +89,7 @@ public class CommonEventHandler {
 					migratedContentsNbt.put(StorageWrapper.CONTENTS_TAG, contentsNbt.getCompound(StorageWrapper.CONTENTS_TAG));
 					migratedContentsNbt.put(StorageWrapper.SETTINGS_TAG, contentsNbt.getCompound(StorageWrapper.SETTINGS_TAG));
 					MovingStorageData.get(id).setContents(migratedContentsNbt);
-					storageItem.set(ModCoreDataComponents.RENDER_INFO_TAG, CustomData.of(contentsNbt.getCompound(StorageWrapper.RENDER_INFO_TAG)));
+					storageItem.sophisticatedCore_set(ModCoreDataComponents.RENDER_INFO_TAG, CustomData.of(contentsNbt.getCompound(StorageWrapper.RENDER_INFO_TAG)));
 					MovingStorageItem.setStorageItem(result, storageItem);
 					itemContentsStorage.removeStorageContents(id);
 				});
