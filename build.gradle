@@ -195,14 +195,9 @@ dependencies {
     if (findProject(':SophisticatedCore') != null) {
         implementation project(path: ":SophisticatedCore", configuration: "namedElements")
         var core = project(":SophisticatedCore")
-        if (core.port_lib_modules != "none") {
-            for (def module in core.port_lib_modules.split(',')) {
-                modApi("io.github.fabricators_of_create.Porting-Lib:${module.trim()}:$core.port_lib_version+$minecraft_version")
-            }
-        }
-        if (core.port_lib_modules_fixes != "none") {
-            for (def module in core.port_lib_modules_fixes.split(',')) {
-                modApi("io.github.fabricators_of_create.Porting-Lib:${module.trim()}:$core.port_lib_version_fixes+$minecraft_version")
+        if (core.porting_lib_modules != "none") {
+            for (def module in core.porting_lib_modules.split(',')) {
+                modApi("io.github.fabricators_of_create.Porting-Lib:${module.trim()}:$core.porting_lib_version+$minecraft_version")
             }
         }
     } else {
@@ -211,9 +206,9 @@ dependencies {
     if (findProject(':SophisticatedStorage') != null) {
         implementation project(path: ":SophisticatedStorage", configuration: "namedElements")
         var storage = project(":SophisticatedStorage")
-        if (storage.port_lib_modules != "none") {
-            for (def module in core.port_lib_modules.split(',')) {
-                modApi("io.github.fabricators_of_create.Porting-Lib:${module.trim()}:$core.port_lib_version+$minecraft_version")
+        if (storage.porting_lib_modules != "none") {
+            for (def module in storage.porting_lib_modules.split(',')) {
+                modApi("io.github.fabricators_of_create.Porting-Lib:${module.trim()}:$storage.porting_lib_version+$minecraft_version")
             }
         }
     } else {
@@ -222,9 +217,9 @@ dependencies {
         }
     }
 
-    if (port_lib_modules != "none") {
-        for (def module in port_lib_modules.split(',')) {
-            modApi(include("io.github.fabricators_of_create.Porting-Lib:${module.trim()}:$port_lib_version+$minecraft_version"))
+    if (porting_lib_modules != "none") {
+        for (def module in porting_lib_modules.split(',')) {
+            modApi(include("io.github.fabricators_of_create.Porting-Lib:${module.trim()}:$porting_lib_version+$minecraft_version"))
         }
     }
 
@@ -308,7 +303,7 @@ processResources {
             fabric_version      : project.fabric_version,
             sc_version          : mavenVersionToFabric(project.sc_version),
             ss_version          : mavenVersionToFabric(project.ss_version),
-            port_lib_version    : project.port_lib_version
+            porting_lib_version : project.porting_lib_version
     ]
 
     inputs.properties replaceProperties
