@@ -2,12 +2,10 @@ package net.p3pp3rf1y.sophisticatedstorageinmotion.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import dev.architectury.registry.client.rendering.BlockEntityRendererRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -56,10 +54,9 @@ public class StorageMinecartRenderer extends MinecartRenderer<StorageMinecart> {
 			BakedModel bakedModel = blockRenderer.getBlockModel(barrel.getBlockState());
 
 			ModelData modelData = BarrelBakedModelBase.getModelDataFromBlockEntity(barrel);
-			// Added to set the model data for the barrel baked model
-			if (bakedModel instanceof BarrelBakedModelBase barrelBakedModel) {
-				barrelBakedModel.setModelData(modelData);
-			}
+			// Fabric: Added to set the model data for the barrel baked model
+			BarrelBakedModelBase.setModelData(barrel.getBlockState(), modelData);
+
 			//for (RenderType renderType : bakedModel.getRenderTypes(state, RandomSource.create(42L), modelData)) {
 				//VertexConsumer vertexConsumer = buffer.getBuffer(RenderTypeHelper.getEntityRenderType(renderType, false));
 				VertexConsumer vertexConsumer = buffer.getBuffer(ItemBlockRenderTypes.getRenderType(barrel.getBlockState(), false));
