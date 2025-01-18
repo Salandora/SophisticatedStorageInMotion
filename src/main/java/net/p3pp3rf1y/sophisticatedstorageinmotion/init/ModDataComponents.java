@@ -1,11 +1,10 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.init;
 
 import com.mojang.serialization.Codec;
+import io.github.fabricators_of_create.porting_lib.util.DeferredRegister;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.codec.ByteBufCodecs;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.registries.DeferredRegister;
 import net.p3pp3rf1y.sophisticatedcore.util.SimpleItemContent;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.SophisticatedStorageInMotion;
 
@@ -29,7 +28,13 @@ public class ModDataComponents {
 	public static final Supplier<DataComponentType<Boolean>> UPGRADES_VISIBLE = DATA_COMPONENT_TYPES.register("upgrades_visible",
 			() -> new DataComponentType.Builder<Boolean>().persistent(Codec.BOOL).networkSynchronized(ByteBufCodecs.BOOL).build());
 
-	public static void register(IEventBus modBus) {
-		DATA_COMPONENT_TYPES.register(modBus);
+	public static final Supplier<DataComponentType<Boolean>> COUNTS_VISIBLE = DATA_COMPONENT_TYPES.register("counts_visible",
+			() -> new DataComponentType.Builder<Boolean>().persistent(Codec.BOOL).networkSynchronized(ByteBufCodecs.BOOL).build());
+
+	public static final Supplier<DataComponentType<Boolean>> FILL_LEVELS_VISIBLE = DATA_COMPONENT_TYPES.register("fill_levels_visible",
+			() -> new DataComponentType.Builder<Boolean>().persistent(Codec.BOOL).networkSynchronized(ByteBufCodecs.BOOL).build());
+
+	public static void register() {
+		DATA_COMPONENT_TYPES.register();
 	}
 }

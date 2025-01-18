@@ -1,12 +1,14 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.network;
 
 import io.netty.buffer.ByteBuf;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.SophisticatedStorageInMotion;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.MovingStorageData;
 
@@ -26,7 +28,8 @@ public record MovingStorageContentsPayload(UUID storageUuid, CompoundTag content
 		return TYPE;
 	}
 
-	public static void handlePayload(MovingStorageContentsPayload payload, IPayloadContext context) {
+	@Environment(EnvType.CLIENT)
+	public static void handlePayload(MovingStorageContentsPayload payload, ClientPlayNetworking.Context context) {
 		MovingStorageData.get(payload.storageUuid).setContents(payload.storageUuid, payload.contents);
 	}
 }

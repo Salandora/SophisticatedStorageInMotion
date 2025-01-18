@@ -31,7 +31,7 @@ public class StorageMinecartItem extends MovingStorageItem {
 			ServerLevel serverlevel = blockSource.level();
 			BlockPos blockpos = blockSource.pos().relative(direction);
 			BlockState blockstate = serverlevel.getBlockState(blockpos);
-			RailShape railshape = blockstate.getBlock() instanceof BaseRailBlock baseRailBlock ? baseRailBlock.getRailDirection(blockstate, serverlevel, blockpos, null) : RailShape.NORTH_SOUTH;
+			RailShape railshape = blockstate.getBlock() instanceof BaseRailBlock baseRailBlock ? baseRailBlock.sophisticated_getRailDirection(blockstate, serverlevel, blockpos, null) : RailShape.NORTH_SOUTH;
 			double slopeOffset;
 			if (blockstate.is(BlockTags.RAILS)) {
 				if (railshape.isAscending()) {
@@ -45,7 +45,7 @@ public class StorageMinecartItem extends MovingStorageItem {
 				}
 
 				BlockState stateBelow = serverlevel.getBlockState(blockpos.below());
-				RailShape railShapeBelow = stateBelow.getBlock() instanceof BaseRailBlock baseRailBlock ? baseRailBlock.getRailDirection(stateBelow, serverlevel, blockpos.below(), null) : RailShape.NORTH_SOUTH;
+				RailShape railShapeBelow = stateBelow.getBlock() instanceof BaseRailBlock baseRailBlock ? baseRailBlock.sophisticated_getRailDirection(stateBelow, serverlevel, blockpos.below(), null) : RailShape.NORTH_SOUTH;
 				if (direction != Direction.DOWN && railShapeBelow.isAscending()) {
 					slopeOffset = -0.4;
 				} else {
@@ -77,7 +77,7 @@ public class StorageMinecartItem extends MovingStorageItem {
 		} else {
 			ItemStack stack = context.getItemInHand();
 			if (level instanceof ServerLevel serverlevel) {
-				RailShape railshape = blockstate.getBlock() instanceof BaseRailBlock baseRailBlock ? baseRailBlock.getRailDirection(blockstate, level, blockpos, null) : RailShape.NORTH_SOUTH;
+				RailShape railshape = blockstate.getBlock() instanceof BaseRailBlock baseRailBlock ? baseRailBlock.sophisticated_getRailDirection(blockstate, level, blockpos, null) : RailShape.NORTH_SOUTH;
 				double ascendingOffset = 0.0;
 				if (railshape.isAscending()) {
 					ascendingOffset = 0.5;
@@ -96,7 +96,7 @@ public class StorageMinecartItem extends MovingStorageItem {
 
 	private static StorageMinecart createMinecart(ServerLevel serverlevel, BlockPos blockpos, double ascendingOffset, ItemStack stack, @Nullable Player player) {
 		StorageMinecart minecart = new StorageMinecart(serverlevel, blockpos.getX() + 0.5, blockpos.getY() + 0.0625 + ascendingOffset, blockpos.getZ() + 0.5);
-		minecart.getStorageHolder().setStorageItemFrom(stack);
+		minecart.getStorageHolder().setStorageItemFrom(stack, true);
 		EntityType.createDefaultStackConfig(serverlevel, stack, player).accept(minecart);
 		return minecart;
 	}

@@ -1,14 +1,13 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.init;
 
+import io.github.fabricators_of_create.porting_lib.util.DeferredRegister;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.inventory.MenuType;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
-import net.neoforged.neoforge.registries.DeferredRegister;
+import net.p3pp3rf1y.sophisticatedcore.util.Capabilities;
+import net.p3pp3rf1y.sophisticatedcore.util.IMenuTypeExtension;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.SophisticatedStorageInMotion;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.common.gui.MovingLimitedBarrelContainerMenu;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.common.gui.MovingLimitedBarrelSettingsContainerMenu;
@@ -40,14 +39,14 @@ public class ModEntities {
 	public static final Supplier<MenuType<MovingLimitedBarrelSettingsContainerMenu>> MOVING_LIMITED_BARREL_SETTINGS_CONTAINER_TYPE = MENU_TYPES.register("moving_limited_barrel_settings",
 			() -> IMenuTypeExtension.create(MovingLimitedBarrelSettingsContainerMenu::fromBuffer));
 
-	private static void registerCapabilities(RegisterCapabilitiesEvent event) {
-		event.registerEntity(Capabilities.ItemHandler.ENTITY_AUTOMATION, STORAGE_MINECART.get(), (entity, direction) -> entity.getStorageHolder().getStorageWrapper().getInventoryForInputOutput());
+	private static void registerCapabilities() {
+		Capabilities.ItemHandler.ENTITY_AUTOMATION.registerForType((entity, direction) -> entity.getStorageHolder().getStorageWrapper().getInventoryForInputOutput(), STORAGE_MINECART.get());
 	}
 
-	public static void registerHandlers(IEventBus modBus) {
-		ENTITY_TYPES.register(modBus);
-		MENU_TYPES.register(modBus);
+	public static void registerHandlers() {
+		ENTITY_TYPES.register();
+		MENU_TYPES.register();
 
-		modBus.addListener(ModEntities::registerCapabilities);
+		ModEntities.registerCapabilities();
 	}
 }

@@ -59,14 +59,14 @@ public class UncraftMovingStorageRecipe extends CustomRecipe {
 	}
 
 	@Override
-	public NonNullList<ItemStack> getRemainingItems(CraftingInput input) {
-		NonNullList<ItemStack> remainingItems = NonNullList.create();
-		getMovingStorage(input).ifPresent(movingStorage -> {
-			if (movingStorage.getItem() instanceof MovingStorageItem movingStorageItem) {
-				remainingItems.add(movingStorageItem.getUncraftRemainingItem());
+	public NonNullList<ItemStack> getRemainingItems(CraftingInput inv) {
+		NonNullList<ItemStack> remainingItems = NonNullList.withSize(inv.size(), ItemStack.EMPTY);
+		for (int slot = 0; slot < inv.size(); slot++) {
+			ItemStack slotStack = inv.getItem(slot);
+			if (slotStack.getItem() instanceof MovingStorageItem movingStorageItem) {
+				remainingItems.set(slot, movingStorageItem.getUncraftRemainingItem());
 			}
-		});
-
+		}
 		return remainingItems;
 	}
 

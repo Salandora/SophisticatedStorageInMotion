@@ -7,6 +7,9 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -19,7 +22,6 @@ import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.properties.WoodType;
-import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.AABB;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.api.IUpgradeRenderer;
@@ -29,16 +31,15 @@ import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.IUpgradeRenderData;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.UpgradeRenderDataType;
+import net.p3pp3rf1y.sophisticatedcore.settings.itemdisplay.ItemDisplaySettingsCategory;
+import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ITickableUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.util.SimpleItemContent;
 import net.p3pp3rf1y.sophisticatedstorage.block.*;
 import net.p3pp3rf1y.sophisticatedstorage.init.ModBlocks;
-import net.p3pp3rf1y.sophisticatedstorage.item.BarrelBlockItem;
-import net.p3pp3rf1y.sophisticatedstorage.item.ShulkerBoxItem;
-import net.p3pp3rf1y.sophisticatedstorage.item.StorageBlockItem;
-import net.p3pp3rf1y.sophisticatedstorage.item.WoodStorageBlockItem;
+import net.p3pp3rf1y.sophisticatedstorage.item.*;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.common.gui.MovingLimitedBarrelContainerMenu;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.common.gui.MovingStorageContainerMenu;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.init.ModDataComponents;
@@ -48,7 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
+public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implements ILockable, ICountDisplay, ITierDisplay, IUpgradeDisplay, IFillLevelDisplay {
 	private final T entity;
 
 	@Nullable
@@ -56,15 +57,87 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 
 	private IStorageWrapper storageWrapper = NoopStorageWrapper.INSTANCE;
 
+	private final MovingStorageOpenersCounter openersCounter;
+
+	private boolean updateRenderBlockEntityAttributes = false;
+
 	public EntityStorageHolder(T entity) {
 		this.entity = entity;
+
+		openersCounter = new MovingStorageOpenersCounter(entity) {
+			@Override
+			protected void onOpen() {
+				if (isBarrel(entity.getStorageItem())) {
+					playSound(SoundEvents.BARREL_OPEN);
+					updateBarrelOpenBlockState(true);
+				} else if (isShulkerBox(entity.getStorageItem())) {
+					playSound(SoundEvents.SHULKER_BOX_OPEN);
+					if (renderBlockEntity instanceof ShulkerBoxBlockEntity shulkerBoxBlockEntity) {
+						shulkerBoxBlockEntity.setAnimationStatus(ShulkerBoxBlockEntity.AnimationStatus.OPENING);
+					}
+				} else if (isChest(entity.getStorageItem())) {
+					playSound(SoundEvents.CHEST_OPEN);
+					if (renderBlockEntity instanceof ChestBlockEntity chestBlockEntity) {
+						chestBlockEntity.getChestLidController().shouldBeOpen(true);
+					}
+				}
+			}
+
+			@Override
+			protected void onClose() {
+				if (isBarrel(entity.getStorageItem())) {
+					playSound(SoundEvents.BARREL_CLOSE);
+					updateBarrelOpenBlockState(false);
+				} else if (isShulkerBox(entity.getStorageItem())) {
+					playSound(SoundEvents.SHULKER_BOX_CLOSE);
+					if (renderBlockEntity instanceof ShulkerBoxBlockEntity shulkerBoxBlockEntity) {
+						shulkerBoxBlockEntity.setAnimationStatus(ShulkerBoxBlockEntity.AnimationStatus.CLOSING);
+					}
+				} else if (isChest(entity.getStorageItem())) {
+					playSound(SoundEvents.CHEST_CLOSE);
+					if (renderBlockEntity instanceof ChestBlockEntity chestBlockEntity) {
+						chestBlockEntity.getChestLidController().shouldBeOpen(false);
+					}
+				}
+			}
+
+			private void playSound(SoundEvent sound) {
+				entity.level().playSound(null, entity, sound, SoundSource.BLOCKS, 0.5F, entity.level().random.nextFloat() * 0.1F + 0.9F);
+			}
+		};
+	}
+
+	private void updateBarrelOpenBlockState(boolean open) {
+		if (getRenderBlockEntity() instanceof BarrelBlockEntity barrelBlockEntity && !(barrelBlockEntity instanceof LimitedBarrelBlockEntity)) {
+			barrelBlockEntity.setBlockState(barrelBlockEntity.getBlockState().setValue(BarrelBlock.OPEN, open));
+		}
+	}
+
+	private boolean isBarrel(ItemStack storageItem) {
+		return storageItem.getItem() instanceof BarrelBlockItem;
+	}
+
+	private boolean isShulkerBox(ItemStack storageItem) {
+		return storageItem.getItem() instanceof ShulkerBoxItem;
+	}
+
+	private boolean isChest(ItemStack storageItem) {
+		return storageItem.getItem() instanceof ChestBlockItem;
 	}
 
 	public static boolean areUpgradesVisible(ItemStack storageItem) {
-		return storageItem.getOrDefault(ModDataComponents.UPGRADES_VISIBLE, false);
+		return storageItem.sophisticatedCore_getOrDefault(ModDataComponents.UPGRADES_VISIBLE, false);
 	}
 
-	public void setStorageItemFrom(ItemStack stack) {
+	public static boolean areCountsVisible(ItemStack storageItem) {
+		return storageItem.sophisticatedCore_getOrDefault(ModDataComponents.COUNTS_VISIBLE, true);
+	}
+
+	public static boolean areFillLevelsVisible(ItemStack storageItem) {
+		return storageItem.sophisticatedCore_getOrDefault(ModDataComponents.FILL_LEVELS_VISIBLE, false);
+	}
+
+	public void setStorageItemFrom(ItemStack stack, boolean setupDefaults) {
 		SimpleItemContent storageItemContents = stack.get(ModDataComponents.STORAGE_ITEM.get());
 		if (storageItemContents == null) {
 			ItemStack barrel = new ItemStack(ModBlocks.BARREL_ITEM.get());
@@ -73,8 +146,8 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 		} else {
 			ItemStack storageItem = storageItemContents.copy();
 			setStorageItem(storageItem);
-			if (isLimitedBarrel(storageItem)) {
-				LimitedBarrelBlock.setupDefaultSettings(getStorageWrapper(), storageWrapper instanceof MovingStorageWrapper movingStorageWrapper ? movingStorageWrapper.getNumberOfInventorySlots() : storageWrapper.getInventoryHandler().getSlots());
+			if (setupDefaults && isLimitedBarrel(storageItem)) {
+				LimitedBarrelBlock.setupDefaultSettings(getStorageWrapper(), storageWrapper instanceof MovingStorageWrapper movingStorageWrapper ? movingStorageWrapper.getNumberOfInventorySlots() : storageWrapper.getInventoryHandler().getSlotCount());
 			}
 		}
 	}
@@ -97,15 +170,15 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 	public void setStorageItem(ItemStack storageItem) {
 		entity.setStorageItem(storageItem);
 		storageWrapper = NoopStorageWrapper.INSTANCE; //reset storage wrapper to force update when it's next requested
-		renderBlockEntity = null;
+		updateRenderBlockEntityAttributes = true;
 	}
 
 	public void updateStorageWrapper() {
 		ItemStack storageItem = entity.getStorageItem();
-		UUID id = storageItem.get(ModCoreDataComponents.STORAGE_UUID);
+		UUID id = storageItem.sophisticatedCore_get(ModCoreDataComponents.STORAGE_UUID);
 		if (id == null) {
 			id = UUID.randomUUID();
-			storageItem.set(ModCoreDataComponents.STORAGE_UUID, id);
+			storageItem.sophisticatedCore_set(ModCoreDataComponents.STORAGE_UUID, id);
 			setStorageItem(storageItem);
 		}
 
@@ -126,7 +199,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 
 	private void onStackChanged() {
 		entity.setStorageItem(getStorageWrapper().getWrappedStorageStack());
-		renderBlockEntity = null;
+		updateRenderBlockEntityAttributes = true;
 	}
 
 	private void onContentsChanged() {
@@ -135,7 +208,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 		}
 
 		ItemStack storageItem = entity.getStorageItem();
-		@Nullable UUID storageId = storageItem.get(ModCoreDataComponents.STORAGE_UUID);
+		@Nullable UUID storageId = storageItem.sophisticatedCore_get(ModCoreDataComponents.STORAGE_UUID);
 		if (storageId == null) {
 			return;
 		}
@@ -143,15 +216,26 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 	}
 
 	public void startOpen(Player player) {
-		entity.gameEvent(GameEvent.CONTAINER_OPEN, player);
+		if (!entity.isRemoved() && !player.isSpectator()) {
+			openersCounter.incrementOpeners(player);
+		}
 		PiglinAi.angerNearbyPiglins(player, true);
+		if (renderBlockEntity != null) {
+			renderBlockEntity.startOpen(player);
+		}
 	}
 
 	public void stopOpen(Player player) {
-		//noop
+		if (!entity.isRemoved() && !player.isSpectator()) {
+			openersCounter.decrementOpeners(player);
+		}
+		if (renderBlockEntity != null) {
+			renderBlockEntity.stopOpen(player);
+		}
 	}
 
 	public void tick() {
+		openersCounter.tick();
 		if (entity.level().isClientSide()) {
 			clientTick();
 			return;
@@ -164,6 +248,11 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 		if (entity.level().random.nextInt(10) == 0) {
 			RenderInfo renderInfo = getStorageWrapper().getRenderInfo();
 			renderUpgrades(entity.level(), entity.level().random, renderInfo);
+		}
+		if (renderBlockEntity instanceof ChestBlockEntity chestBlockEntity) {
+			ChestBlockEntity.lidAnimateTick(chestBlockEntity);
+		} else if (renderBlockEntity instanceof ShulkerBoxBlockEntity shulkerBoxBlockEntity) {
+			ShulkerBoxBlockEntity.tick(null, BlockPos.ZERO, renderBlockEntity.getBlockState(), shulkerBoxBlockEntity);
 		}
 	}
 
@@ -199,22 +288,21 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 		}
 	}
 
-
 	public static boolean isLocked(ItemStack stack) {
-		return stack.getOrDefault(ModDataComponents.LOCKED, false);
+		return stack.sophisticatedCore_getOrDefault(ModDataComponents.LOCKED, false);
 	}
 
 	public static boolean isLockVisible(ItemStack storageItem) {
-		return storageItem.getOrDefault(ModDataComponents.LOCK_VISIBLE, true);
+		return storageItem.sophisticatedCore_getOrDefault(ModDataComponents.LOCK_VISIBLE, true);
 	}
 
 	public static CompoundTag getRenderInfoNbt(ItemStack storageItem) {
-		return storageItem.getOrDefault(ModCoreDataComponents.RENDER_INFO_TAG, CustomData.EMPTY).copyTag();
+		return storageItem.sophisticatedCore_getOrDefault(ModCoreDataComponents.RENDER_INFO_TAG, CustomData.EMPTY).copyTag();
 	}
 
 	public StorageBlockEntity getRenderBlockEntity() {
+		ItemStack storageItem = entity.getStorageItem();
 		if (renderBlockEntity == null) {
-			ItemStack storageItem = entity.getStorageItem();
 			if (storageItem.getItem() instanceof BlockItem blockItem) {
 				if (blockItem.getBlock() instanceof ChestBlock) {
 					renderBlockEntity = new ChestBlockEntity(BlockPos.ZERO, blockItem.getBlock().defaultBlockState());
@@ -232,59 +320,6 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 				} else if (blockItem.getBlock() instanceof ShulkerBoxBlock) {
 					renderBlockEntity = new ShulkerBoxBlockEntity(BlockPos.ZERO, blockItem.getBlock().defaultBlockState());
 				}
-
-				if (renderBlockEntity != null) {
-					if (renderBlockEntity.isLocked() != EntityStorageHolder.isLocked(storageItem)) {
-						renderBlockEntity.toggleLock();
-					}
-					if (renderBlockEntity.shouldShowLock() != EntityStorageHolder.isLockVisible(storageItem)) {
-						renderBlockEntity.toggleLockVisibility();
-					}
-					if (renderBlockEntity.shouldShowTier() != StorageBlockItem.showsTier(storageItem)) {
-						renderBlockEntity.toggleTierVisiblity();
-					}
-					renderBlockEntity.getStorageWrapper().getRenderInfo().deserializeFrom(EntityStorageHolder.getRenderInfoNbt(storageItem));
-					if (renderBlockEntity.shouldShowUpgrades() != EntityStorageHolder.areUpgradesVisible(storageItem)) {
-						renderBlockEntity.toggleUpgradesVisiblity();
-					}
-					if (storageItem.getItem() instanceof ITintableBlockItem tintableBlockItem) {
-						renderBlockEntity.getStorageWrapper().setMainColor(tintableBlockItem.getMainColor(storageItem).orElse(-1));
-						renderBlockEntity.getStorageWrapper().setAccentColor(tintableBlockItem.getAccentColor(storageItem).orElse(-1));
-					}
-					if (renderBlockEntity instanceof WoodStorageBlockEntity woodStorage) {
-						WoodStorageBlockItem.getWoodType(storageItem).ifPresent(woodType -> {
-							if (woodStorage.getWoodType() != WoodStorageBlockItem.getWoodType(storageItem)) {
-								woodStorage.setWoodType(woodType);
-							}
-						});
-						boolean isPacked = WoodStorageBlockItem.isPacked(storageItem);
-						if (woodStorage.isPacked() != isPacked) {
-							woodStorage.setPacked(isPacked);
-						}
-					}
-					if (renderBlockEntity instanceof BarrelBlockEntity barrel) {
-						Map<BarrelMaterial, ResourceLocation> materials = BarrelBlockItem.getMaterials(storageItem);
-						if (!barrel.getMaterials().equals(materials)) {
-							barrel.setMaterials(materials);
-						}
-						barrel.setDynamicRenderTracker(new IDynamicRenderTracker() {
-							@Override
-							public boolean isDynamicRenderer() {
-								return true;
-							}
-
-							@Override
-							public boolean isFullyDynamicRenderer() {
-								return true;
-							}
-
-							@Override
-							public void onRenderInfoUpdated(RenderInfo ri) {
-								//noop
-							}
-						});
-					}
-				}
 			}
 
 			if (renderBlockEntity == null) {
@@ -292,16 +327,83 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 			}
 			setRenderBlockEntity(renderBlockEntity);
 		}
+
+		if (renderBlockEntity != null && updateRenderBlockEntityAttributes) {
+			updateRenderBlockEntityAttributes = false;
+			if (renderBlockEntity.isLocked() != EntityStorageHolder.isLocked(storageItem)) {
+				renderBlockEntity.toggleLock();
+			}
+			if (renderBlockEntity.shouldShowLock() != EntityStorageHolder.isLockVisible(storageItem)) {
+				renderBlockEntity.toggleLockVisibility();
+			}
+			if (renderBlockEntity.shouldShowTier() != StorageBlockItem.showsTier(storageItem)) {
+				renderBlockEntity.toggleTierVisiblity();
+			}
+			renderBlockEntity.getStorageWrapper().getRenderInfo().deserializeFrom(getRenderInfoNbt(storageItem));
+			if (renderBlockEntity.shouldShowUpgrades() != EntityStorageHolder.areUpgradesVisible(storageItem)) {
+				renderBlockEntity.toggleUpgradesVisiblity();
+			}
+			if (storageItem.getItem() instanceof ITintableBlockItem tintableBlockItem) {
+				renderBlockEntity.getStorageWrapper().setMainColor(tintableBlockItem.getMainColor(storageItem).orElse(-1));
+				renderBlockEntity.getStorageWrapper().setAccentColor(tintableBlockItem.getAccentColor(storageItem).orElse(-1));
+			}
+			if (renderBlockEntity instanceof WoodStorageBlockEntity woodStorage) {
+				WoodStorageBlockItem.getWoodType(storageItem).ifPresent(woodType -> {
+					if (woodStorage.getWoodType() != WoodStorageBlockItem.getWoodType(storageItem)) {
+						woodStorage.setWoodType(woodType);
+					}
+				});
+				boolean isPacked = WoodStorageBlockItem.isPacked(storageItem);
+				if (woodStorage.isPacked() != isPacked) {
+					woodStorage.setPacked(isPacked);
+				}
+			}
+			if (renderBlockEntity instanceof BarrelBlockEntity barrel) {
+				Map<BarrelMaterial, ResourceLocation> materials = BarrelBlockItem.getMaterials(storageItem);
+				if (!barrel.getMaterials().equals(materials)) {
+					barrel.setMaterials(materials);
+				}
+				barrel.setDynamicRenderTracker(new IDynamicRenderTracker() {
+					@Override
+					public boolean isDynamicRenderer() {
+						return true;
+					}
+
+					@Override
+					public boolean isFullyDynamicRenderer() {
+						return true;
+					}
+
+					@Override
+					public void onRenderInfoUpdated(RenderInfo ri) {
+						//noop
+					}
+				});
+
+				if (renderBlockEntity instanceof LimitedBarrelBlockEntity limitedBarrelBlockEntity) {
+					if (limitedBarrelBlockEntity.shouldShowFillLevels() != EntityStorageHolder.areFillLevelsVisible(storageItem)) {
+						limitedBarrelBlockEntity.toggleFillLevelVisibility();
+					}
+					if (limitedBarrelBlockEntity.shouldShowCounts() != EntityStorageHolder.areCountsVisible(storageItem)) {
+						limitedBarrelBlockEntity.toggleCountVisibility();
+					}
+				}
+			}
+		}
+
 		return renderBlockEntity;
 	}
 
 	public void onStorageItemSynced() {
-		renderBlockEntity = null;
+		if (renderBlockEntity != null && renderBlockEntity.getBlockState().getBlock().asItem() != entity.getStorageItem().getItem()) {
+			renderBlockEntity = null;
+		}
+		updateRenderBlockEntityAttributes = true;
 		storageWrapper = NoopStorageWrapper.INSTANCE;
 	}
 
 	public InteractionResult openContainerMenu(Player player) {
-		player.openMenu(new SophisticatedMenuProvider((w, p, pl) -> createMenu(w, pl), entity.getName(), false), buffer -> buffer.writeInt(entity.getId()));
+		player.sophisticatedCore_openMenu(new SophisticatedMenuProvider((w, p, pl) -> createMenu(w, pl), entity.getName(), false), buffer -> buffer.writeInt(entity.getId()));
 		return player.level().isClientSide ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
 	}
 
@@ -320,8 +422,10 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 	public void onDestroy() {
 		if (entity.level().getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
 			ItemStack drop = new ItemStack(entity.getDropItem());
-			drop.set(ModDataComponents.STORAGE_ITEM, SimpleItemContent.copyOf(entity.getStorageItem()));
-			drop.set(DataComponents.CUSTOM_NAME, entity.getCustomName());
+			drop.sophisticatedCore_set(ModDataComponents.STORAGE_ITEM, SimpleItemContent.copyOf(entity.getStorageItem()));
+			if (entity.hasCustomName()) {
+				drop.set(DataComponents.CUSTOM_NAME, entity.getCustomName());
+			}
 			entity.spawnAtLocation(drop);
 			if (!(entity.getStorageItem().getItem() instanceof ShulkerBoxItem)) {
 				dropAllItems();
@@ -332,5 +436,111 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> {
 	private void dropAllItems() {
 		InventoryHelper.dropItems(getStorageWrapper().getInventoryHandler(), entity.level(), entity.position().x(), entity.position().y(), entity.position().z());
 		InventoryHelper.dropItems(getStorageWrapper().getUpgradeHandler(), entity.level(), entity.position().x(), entity.position().y(), entity.position().z());
+	}
+
+	@Override
+	public void toggleLock() {
+		ItemStack storageItem = entity.getStorageItem();
+		boolean locked = !isLocked(storageItem);
+
+		if (memorizesItemsWhenLocked()) {
+			if (locked) {
+				getStorageWrapper().getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).selectSlots(0, getStorageWrapper().getInventoryHandler().getSlotCount());
+			} else {
+				getStorageWrapper().getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).unselectAllSlots();
+				ItemDisplaySettingsCategory itemDisplaySettings = getStorageWrapper().getSettingsHandler().getTypeCategory(ItemDisplaySettingsCategory.class);
+				InventoryHelper.iterate(getStorageWrapper().getInventoryHandler(), (slot, stack) -> {
+					if (stack.isEmpty()) {
+						itemDisplaySettings.itemChanged(slot);
+					}
+				});
+			}
+		}
+
+		storageItem.sophisticatedCore_set(ModDataComponents.LOCKED, locked);
+		setStorageItem(storageItem);
+	}
+
+	private boolean memorizesItemsWhenLocked() {
+		return isLimitedBarrel(entity.getStorageItem());
+	}
+
+	@Override
+	public boolean isLocked() {
+		return isLocked(entity.getStorageItem());
+	}
+
+	@Override
+	public boolean shouldShowLock() {
+		return isLockVisible(entity.getStorageItem());
+	}
+
+	@Override
+	public void toggleLockVisibility() {
+		ItemStack storageItem = entity.getStorageItem();
+		storageItem.sophisticatedCore_set(ModDataComponents.LOCK_VISIBLE, !isLockVisible(storageItem));
+		setStorageItem(storageItem);
+	}
+
+	@Override
+	public boolean shouldShowCounts() {
+		return areCountsVisible(entity.getStorageItem());
+	}
+
+	@Override
+	public void toggleCountVisibility() {
+		ItemStack storageItem = entity.getStorageItem();
+		storageItem.sophisticatedCore_set(ModDataComponents.COUNTS_VISIBLE, !areCountsVisible(storageItem));
+		setStorageItem(storageItem);
+	}
+
+	@Override
+	public List<Integer> getSlotCounts() {
+		return isLimitedBarrel(entity.getStorageItem()) ? getStorageWrapper().getRenderInfo().getItemDisplayRenderInfo().getSlotCounts() : List.of();
+	}
+
+	@Override
+	public boolean shouldShowFillLevels() {
+		return areFillLevelsVisible(entity.getStorageItem());
+	}
+
+	@Override
+	public void toggleFillLevelVisibility() {
+		ItemStack storageItem = entity.getStorageItem();
+		storageItem.sophisticatedCore_set(ModDataComponents.FILL_LEVELS_VISIBLE, !areFillLevelsVisible(storageItem));
+		setStorageItem(storageItem);
+	}
+
+	@Override
+	public List<Float> getSlotFillLevels() {
+		return isLimitedBarrel(entity.getStorageItem()) ? getStorageWrapper().getRenderInfo().getItemDisplayRenderInfo().getSlotFillRatios() : List.of();
+	}
+
+	@Override
+	public boolean shouldShowTier() {
+		return StorageBlockItem.showsTier(entity.getStorageItem());
+	}
+
+	@Override
+	public void toggleTierVisiblity() {
+		ItemStack storageItem = entity.getStorageItem();
+		StorageBlockItem.setShowsTier(storageItem, !StorageBlockItem.showsTier(storageItem));
+		setStorageItem(storageItem);
+	}
+
+	@Override
+	public boolean shouldShowUpgrades() {
+		return areUpgradesVisible(entity.getStorageItem());
+	}
+
+	@Override
+	public void toggleUpgradesVisiblity() {
+		ItemStack storageItem = entity.getStorageItem();
+		storageItem.sophisticatedCore_set(ModDataComponents.UPGRADES_VISIBLE, !areUpgradesVisible(storageItem));
+		setStorageItem(storageItem);
+	}
+
+	public boolean isOpen() {
+		return openersCounter.getOpenerCount() > 0;
 	}
 }
