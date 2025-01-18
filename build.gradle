@@ -545,8 +545,8 @@ task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
 
     // Dependencies
     mainFile.addRequirement('fabric-api')
-    mainFile.addRequirement('sophisticated-core-(unofficial-fabric-port)')
-    mainFile.addRequirement('sophisticated-storage-(unofficial-fabric-port)')
+    mainFile.addRequirement('sophisticated-core-unofficial-fabric-port')
+    mainFile.addRequirement('sophisticated-storage-unofficial-fabric-port')
     mainFile.addEmbedded('porting-lib')
     mainFile.addOptional('jei')
     mainFile.addOptional('emi')
