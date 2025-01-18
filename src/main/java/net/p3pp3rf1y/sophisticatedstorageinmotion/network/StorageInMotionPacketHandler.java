@@ -4,15 +4,8 @@ import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.SophisticatedStorageInMotion;
 
 public class StorageInMotionPacketHandler extends PacketHandler {
-	public static final StorageInMotionPacketHandler INSTANCE = new StorageInMotionPacketHandler(SophisticatedStorageInMotion.MOD_ID);
-
-	private StorageInMotionPacketHandler(String modId) {
-		super(modId);
-	}
-
-	@Override
-	public void init() {
-		registerMessage(OpenMovingStorageInventoryMessage.class, OpenMovingStorageInventoryMessage::encode, OpenMovingStorageInventoryMessage::decode, OpenMovingStorageInventoryMessage::onMessage);
-		registerMessage(MovingStorageContentsMessage.class, MovingStorageContentsMessage::encode, MovingStorageContentsMessage::decode, MovingStorageContentsMessage::onMessage);
+	public static void init() {
+		registerC2SMessage(OpenMovingStorageInventoryMessage.class, OpenMovingStorageInventoryMessage::new);
+		registerS2CMessage(MovingStorageContentsMessage.class, MovingStorageContentsMessage::new);
 	}
 }

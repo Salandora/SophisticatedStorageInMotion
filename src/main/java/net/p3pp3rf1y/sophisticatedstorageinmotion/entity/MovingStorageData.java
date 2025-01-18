@@ -6,8 +6,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.storage.DimensionDataStorage;
-import net.minecraftforge.fml.util.thread.SidedThreadGroups;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.SophisticatedStorageInMotion;
 
 import java.io.File;
@@ -28,8 +27,8 @@ public class MovingStorageData extends SavedData {
 	}
 
 	public static MovingStorageData get(UUID storageId) {
-		if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER) {
-			MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+		if (SophisticatedCore.getCurrentServer() != null && SophisticatedCore.getCurrentServer().isSameThread()) {
+			MinecraftServer server = SophisticatedCore.getCurrentServer();
 			if (server != null) {
 				ServerLevel overworld = server.getLevel(Level.OVERWORLD);
 				//noinspection ConstantConditions - by this time overworld is loaded

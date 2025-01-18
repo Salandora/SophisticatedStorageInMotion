@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "priority": 1100,
+  "minVersion": "0.8",
+  "package": "net.p3pp3rf1y.sophisticatedstorageinmotion.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "common.BaseRailBlockMixin",
+    "common.IngredientMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

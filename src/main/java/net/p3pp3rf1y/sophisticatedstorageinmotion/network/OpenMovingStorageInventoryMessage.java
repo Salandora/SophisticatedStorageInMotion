@@ -1,38 +1,41 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.network;
 
 import io.netty.buffer.ByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraftforge.network.NetworkEvent;
+import net.p3pp3rf1y.sophisticatedcore.network.SimplePacketBase;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.IMovingStorageEntity;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.function.Supplier;
+public class OpenMovingStorageInventoryMessage extends SimplePacketBase {
+	private int entityId;
 
-public record OpenMovingStorageInventoryMessage(int entityId) {
-
-	public static void encode(OpenMovingStorageInventoryMessage msg, ByteBuf buffer) {
-		buffer.writeInt(msg.entityId());
+	public OpenMovingStorageInventoryMessage(int entityId) {
+		this.entityId = entityId;
 	}
 
-	public static OpenMovingStorageInventoryMessage decode(ByteBuf buffer) {
-		return new OpenMovingStorageInventoryMessage(buffer.readInt());
+	public OpenMovingStorageInventoryMessage(ByteBuf buffer) {
+		this(buffer.readInt());
 	}
 
-	static void onMessage(OpenMovingStorageInventoryMessage msg, Supplier<NetworkEvent.Context> contextSupplier) {
-		NetworkEvent.Context context = contextSupplier.get();
-		context.enqueueWork(() -> handleMessage(context.getSender(), msg));
-		context.setPacketHandled(true);
+	@Override
+	public void write(FriendlyByteBuf buffer) {
+		buffer.writeInt(this.entityId);
 	}
 
-	public static void handleMessage(@Nullable ServerPlayer player, OpenMovingStorageInventoryMessage payload) {
-		if (player == null) {
-			return;
-		}
+	@Override
+	public boolean handle(Context context) {
+		context.enqueueWork(() -> {
+			ServerPlayer player = context.getSender();
+			if (player == null) {
+				return;
+			}
 
-		Entity entity = player.level().getEntity(payload.entityId());
-		if (entity instanceof IMovingStorageEntity storageEntity) {
-			storageEntity.getStorageHolder().openContainerMenu(player);
-		}
+			Entity entity = player.level().getEntity(this.entityId);
+			if (entity instanceof IMovingStorageEntity storageEntity) {
+				storageEntity.getStorageHolder().openContainerMenu(player);
+			}
+		});
+		return true;
 	}
 }

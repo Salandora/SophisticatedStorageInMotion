@@ -7,7 +7,7 @@ import net.p3pp3rf1y.sophisticatedstorageinmotion.init.ModEntities;
 
 public class MovingLimitedBarrelSettingsContainerMenu extends MovingStorageSettingsContainerMenu {
 	protected MovingLimitedBarrelSettingsContainerMenu(int windowId, Player player, int entityId) {
-		super(ModEntities.MOVING_LIMITED_BARREL_SETTINGS_CONTAINER_TYPE.get(), windowId, player, entityId);
+		super(ModEntities.MOVING_LIMITED_BARREL_SETTINGS_CONTAINER_TYPE, windowId, player, entityId);
 	}
 
 	public static MovingLimitedBarrelSettingsContainerMenu fromBuffer(int windowId, Inventory playerInventory, FriendlyByteBuf buffer) {

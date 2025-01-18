@@ -1,12 +1,24 @@
+import net.fabricmc.loom.task.ValidateMixinNameTask
+import net.fabricmc.loom.util.gradle.SourceSetHelper
+import net.fabricmc.loom.util.gradle.SourceSetReference
+
+buildscript {
+    repositories {
+        gradlePluginPortal()
+        maven { url = 'https://maven.parchmentmc.org' }
+        maven { url = "https://maven.fabricmc.net/" }
+    }
+}
+
 plugins {
     id 'idea'
-    id "org.sonarqube" version "4.3.1.3277"
-    id "maven-publish"
-    id 'net.neoforged.gradle' version '[6.0.18,6.2)'
-    id 'org.parchmentmc.librarian.forgegradle' version '1.+'
+    id 'fabric-loom' version '1.8.+'
+    id 'maven-publish'
     id "net.darkhax.curseforgegradle" version "1.1.15"
     id "com.modrinth.minotaur" version "2.+"
 }
+
+apply from: getProject().file('gradle/package-info.gradle')
 
 idea {
     module {
@@ -15,12 +27,25 @@ idea {
     }
 }
 
-if (findProject(':SophisticatedCore') != null) {
-    evaluationDependsOn(':SophisticatedCore')
-}
-
 repositories {
+    mavenLocal()
     mavenCentral()
+
+    maven {
+        name = 'ParchmentMC'
+        url = 'https://maven.parchmentmc.org'
+    }
+
+    maven { url = "https://maven.fabricmc.net/" } // FAPI, Loader
+    maven { url = "https://maven.quiltmc.org/repository/release" } // QM
+    maven { url = "https://mvn.devos.one/snapshots/" } // Create, Porting Lib
+    maven { url = "https://mvn.devos.one/releases/" } // Porting Lib
+
+    maven { // Forge Config API Port
+        name = "Fuzs Mod Resources"
+        url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/"
+    }
+
     maven { url "https://maven.tterrag.com/" }
     maven { url = "https://modmaven.dev/" }
     maven { url "https://minecraft.curseforge.com/api/maven/"}
@@ -30,13 +55,19 @@ repositories {
             includeGroup "curse.maven"
         }
     }
-    maven { url "https://maven.blamejared.com/" }
+    maven { url = "https://maven.terraformersmc.com/releases/" } // Emi
+    maven { url = "https://maven.shedaniel.me/" } // REI and deps
+    maven {
+        name = "entity reach"
+        url = "https://maven.jamieswhiteshirt.com/libs-release/"
+    }
+
     maven {
         name = "GHPCore"
-        url = uri("https://maven.pkg.github.com/p3pp3rf1y/sophisticatedcore")
+        url = uri("https://maven.pkg.github.com/Salandora/sophisticatedcore")
         credentials {
             username = System.getenv("USERNAME")
-            password = System.getenv("GITHUB_TOKEN")
+            password = System.getenv("READ_PACKAGES_TOKEN")
         }
         content {
             includeGroupByRegex "sophisticatedcore.*"
@@ -44,103 +75,193 @@ repositories {
     }
     maven {
         name = "GHPStorage"
-        url = uri("https://maven.pkg.github.com/p3pp3rf1y/sophisticatedstorage")
+        url = uri("https://maven.pkg.github.com/Salandora/sophisticatedstorage")
         credentials {
             username = System.getenv("USERNAME")
-            password = System.getenv("GITHUB_TOKEN")
+            password = System.getenv("READ_PACKAGES_TOKEN")
         }
         content {
             includeGroupByRegex "sophisticatedstorage.*"
-        }
-    }
-    maven {
-        url = "https://maven.octo-studios.com/#/releases"
-        content {
-            includeGroup 'top.theillusivec4.curios'
         }
     }
 }
 
 group = mod_group_id
 version = "${project.minecraft_version}-${project.mod_version}.${getBuildNumber()}${getStable()}"
-archivesBaseName = mod_id
+logger.lifecycle("${project.name} version: ${project.version}")
 
-sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '17'
+base {
+    archivesName = "${mod_id}"
+}
 
-minecraft {
-    mappings channel: 'parchment', version: "$parchment_version"
-    copyIdeResources = true
-    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+fabricApi {
+    configureDataGeneration {
+        setModId(project.mod_id)
+        setOutputDirectory(getProject().file("src/generated/resources")) // Set output directory to the same as the forge version
+    }
+}
+
+loom {
+    runtimeOnlyLog4j = true
+
+    accessWidenerPath = file ("src/main/resources/${mod_id}.accesswidener")
+
+    mods {
+        "${mod_id}" {
+            sourceSet sourceSets.main
+        }
+    }
+
     runs {
-        configureEach {
-            workingDirectory project.file("run/${it.name}")
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-            property 'forge.logging.console.level', 'debug'
-            property "mixin.env.disableRefMap", "true"
-            //property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+        client {
+            client()
 
-            mods {
-                "${mod_id}" {
-                    source sourceSets.main
-                }
-                if (findProject(':SophisticatedCore') != null) {
-                    SophisticatedCore {
-                        source project(':SophisticatedCore').sourceSets.main
+            configName = "Minecraft Client ${project.minecraft_version}"
+            runDir "run/${project.minecraft_version}"
+
+            property("mixin.debug.export=true") // export all mixins
+            property("mixin.debug.strict.unique=true") // strictly enforce that @Unique things are private
+            property("mixin.debug.countInjections=true")
+            vmArg("-XX:+AllowEnhancedClassRedefinition")
+            if (System.getenv("HOTSWAP_AGENT") != null) {
+                property("fabric.systemLibraries=" + System.getenv("HOTSWAP_AGENT"))
+                vmArg("--add-exports=java.base/sun.nio.ch=ALL-UNNAMED")
+                vmArg("--add-opens=java.base/java.lang=ALL-UNNAMED")
+                vmArg("--add-opens=java.base/java.lang.reflect=ALL-UNNAMED")
+                vmArg("--add-opens=java.base/java.io=ALL-UNNAMED")
+                vmArg("--add-opens=java.desktop/java.beans=ALL-UNNAMED")
+                vmArg("--add-exports=jdk.unsupported/sun.misc=ALL-UNNAMED")
+            }
+
+            try {
+                afterEvaluate {
+                    def mixinDep = this.configurations.compileClasspath.incoming.artifactView {
+                        componentFilter {
+                            it instanceof ModuleComponentIdentifier
+                                    && it.module == "sponge-mixin"
+                        }
+                    }
+
+                    if (mixin != null) {
+                        vmArg("-javaagent:${mixinDep.files.first().path}")
+                        println("[Info]: Mixin Hotswap setup finished")
+                    } else {
+                        println("[Warning]: Unable to locate file path for Mixin jar")
                     }
                 }
-                if (findProject(':SophisticatedStorage') != null) {
-                    SophisticatedBackpacks {
-                        source project(':SophisticatedStorage').sourceSets.main
-                    }
-                }
+            } catch (Exception e) {
+                println("[Error]: Mixin Hotswap setup failed!")
+                e.printStackTrace()
             }
         }
-        client {
-        }
+
         server {
-        }
-        data {
-            property 'fml.earlyprogresswindow', 'false'
-            args '--mod', 'sophisticatedstorageinmotion', '--all', '--output', file('src/generated/resources/')
+            server()
+
+            configName = "Minecraft Server ${project.minecraft_version}"
+            runDir "run/${project.minecraft_version}"
         }
     }
 }
 
-sourceSets.main.resources {
-    srcDir 'src/generated/resources'
+configurations.all {
+    resolutionStrategy {
+        force "net.fabricmc:fabric-loader:$project.loader_version"
+        force "net.fabricmc.fabric-api:fabric-api:$project.fabric_version"
+    }
 }
 
 dependencies {
-    minecraft "net.neoforged:forge:${minecraft_version}-${neo_version}"
+    minecraft("com.mojang:minecraft:$project.minecraft_version")
+    mappings(loom.layered {
+        it.officialMojangMappings()
+        it.parchment("org.parchmentmc.data:parchment-${project.parchment_minecraft_version}:${project.parchment_mappings_version}@zip")
+    })
 
-    compileOnly fg.deobf("mezz.jei:jei-${jei_mc_version}:${jei_version}")
-    runtimeOnly fg.deobf("mezz.jei:jei-${jei_mc_version}:${jei_version}")
+    // Fabric Loader
+    modImplementation("net.fabricmc:fabric-loader:$project.loader_version")
+    modImplementation("net.fabricmc.fabric-api:fabric-api:$project.fabric_version")
+
+    implementation("javax.annotation:javax.annotation-api:1.3.2")
+    implementation("com.google.code.findbugs:jsr305:3.0.2")
 
     if (findProject(':SophisticatedCore') != null) {
-        implementation project(':SophisticatedCore')
-        testImplementation project(':SophisticatedCore')
-    } else {
-        implementation fg.deobf("sophisticatedcore:sophisticatedcore:${sc_version}") {
-            transitive = false
+        implementation project(path: ":SophisticatedCore", configuration: "namedElements")
+        var core = project(":SophisticatedCore")
+        if (core.port_lib_modules != "none") {
+            for (def module in core.port_lib_modules.split(',')) {
+                modApi("io.github.fabricators_of_create.Porting-Lib:${module.trim()}:$core.port_lib_version+$minecraft_version")
+            }
         }
-        testImplementation fg.deobf("sophisticatedcore:sophisticatedcore:${sc_version}") {
+    } else {
+        modImplementation("sophisticatedcore:sophisticatedcore:${sc_version}")
+    }
+    if (findProject(':SophisticatedStorage') != null) {
+        implementation project(path: ":SophisticatedStorage", configuration: "namedElements")
+        var storage = project(":SophisticatedStorage")
+        if (storage.port_lib_modules != "none") {
+            for (def module in core.port_lib_modules.split(',')) {
+                modApi("io.github.fabricators_of_create.Porting-Lib:${module.trim()}:$core.port_lib_version+$minecraft_version")
+            }
+        }
+    } else {
+        modImplementation("sophisticatedstorage:sophisticatedstorage:${ss_version}") {
             transitive = false
         }
     }
-    if (findProject(':SophisticatedStorage') != null) {
-        implementation project(':SophisticatedStorage')
-        testImplementation project(':SophisticatedStorage')
-    } else {
-        implementation fg.deobf("sophisticatedstorage:sophisticatedstorage:${ss_version}") {
-            transitive = false
+
+    if (port_lib_modules != "none") {
+        for (def module in port_lib_modules.split(',')) {
+            modApi(include("io.github.fabricators_of_create.Porting-Lib:${module.trim()}:$port_lib_version+$minecraft_version"))
         }
-        testImplementation fg.deobf("sophisticatedstorage:sophisticatedstorage:${ss_version}") {
-            transitive = false
-        }
+    }
+
+    // EMI
+    modCompileOnly("dev.emi:emi-fabric:$emi_version")
+    // JEI
+    //modCompileOnlyApi("mezz.jei:jei-$minecraft_version-common-api:$jei_version")
+    modCompileOnly("mezz.jei:jei-$minecraft_version-fabric:$jei_version")
+    // REI
+    modCompileOnly("me.shedaniel:RoughlyEnoughItems-api-fabric:$rei_version")
+    modCompileOnly("me.shedaniel:RoughlyEnoughItems-default-plugin-fabric:$rei_version")
+    modCompileOnly("me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}")
+
+    testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.+'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.9.+'
+    testImplementation "org.mockito:mockito-core:5.10.+"
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.+'
+}
+
+test {
+    dependsOn("processResources")
+
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
     }
 }
 
-tasks.named('jar', Jar).configure {
+tasks.register('validateMixinNames', ValidateMixinNameTask) {
+    source(sourceSets.main.output)
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.encoding = 'UTF-8'
+    it.options.release = 17
+}
+
+java {
+    // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
+    // if it is present.
+    // If you remove this line, sources will not be generated.
+    withSourcesJar()
+
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+jar {
     from('/') {
         include 'LICENSE'
     }
@@ -148,38 +269,89 @@ tasks.named('jar', Jar).configure {
     manifest {
         attributes([
                 'Specification-Title'     : mod_id,
-                'Specification-Vendor'    : "p3pp3rf1y",
+                "Specification-Vendor"    : project.mod_id,
                 'Specification-Version'   : '1', // We are version 1 of ourselves
                 'Implementation-Title'    : project.name,
-                'Implementation-Version'  : project.jar.archiveVersion,
-                'Implementation-Vendor'   : "p3pp3rf1y",
+                "Implementation-Version"  : "${version}",
+                "Implementation-Vendor"   : project.mod_id,
                 'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
 }
 
-tasks.withType(ProcessResources).configureEach {
+processResources {
     var replaceProperties = [
-            minecraft_version   : minecraft_version, minecraft_version_range: minecraft_version_range,
-            neo_version         : neo_version, neo_version_range: neo_version_range,
-            loader_version_range: loader_version_range,
-            mod_id              : mod_id, mod_version: mod_version,
-            mod_full_version    : "${project.mod_version}.${getBuildNumber()}${getStable()}",
-            sc_version          : sc_version.substring(sc_version.indexOf("-") + 1, sc_version.lastIndexOf(',')) + ".+",
-            ss_version          : ss_version.substring(ss_version.indexOf("-") + 1, ss_version.lastIndexOf(',')) + ".+",
+            mod_id              : project.mod_id,
+            mod_name            : project.mod_name,
+            mod_license         : project.mod_license,
+            mod_version         : version.replace(getStable(), ""), // remove the getStable string so that fabric loader can catch version mismatches, only important for snapshots
+            mod_issue_tracker_url: project.mod_issue_tracker_url,
+            mod_sources_url     : project.mod_sources_url,
+            mod_logo_file       : project.mod_logo_file,
+            mod_credits         : project.mod_credits,
+            mod_description     : project.mod_description,
+            mod_display_url     : project.mod_display_url,
+            minecraft_version   : project.minecraft_version,
+            loader_version      : project.loader_version,
+            fabric_version      : project.fabric_version,
+            sc_version          : mavenVersionToFabric(project.sc_version),
+            ss_version          : mavenVersionToFabric(project.ss_version),
+            port_lib_version    : project.port_lib_version
     ]
+
     inputs.properties replaceProperties
 
-    filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
-        expand replaceProperties + [project: project]
+    var mod_authors = []
+    for (String author in project.mod_authors.split(',')) {
+        mod_authors.add("\"${author.trim()}\"")
     }
+
+    filesMatching("fabric.mod.json") {
+        expand replaceProperties + [project: project]
+
+        filter { String line ->
+            line = line.replace("[\"mod_authors\"]", mod_authors.toString())
+            line
+        }
+    }
+}
+
+// Fix to make IDEA load the correct resources when build and run is delegated to it
+tasks.register('fixIntelliJResources', Copy) {
+    def ideaResourceOutput = SourceSetHelper.getIdeaModuleCompileOutput(new SourceSetReference(sourceSets.main, project))
+    if (ideaResourceOutput.empty)
+        return
+
+    dependsOn processResources
+    group "fabric"
+
+    from processResources
+    into ideaResourceOutput[1]
+}
+
+static def mavenVersionToFabric(String version) {
+    StringBuilder builder = new StringBuilder()
+    if (version.startsWith("[")) {
+        builder.append(">=")
+    } else {
+        builder.append(">")
+    }
+    builder.append(version.substring(1, version.lastIndexOf(',')))
+
+    if (version.endsWith(')')) {
+        builder.append(" <")
+    } else {
+        builder.append(" <=")
+    }
+    builder.append(version.substring(version.lastIndexOf(',') + 1, version.length() - 1))
+    return builder.toString()
 }
 
 static def getBuildNumber() {
     if (System.getenv("GITHUB_RUN_NUMBER") != null) {
         return System.getenv("GITHUB_RUN_NUMBER").toString()
     }
-    return ""
+    return "9999"
 }
 
 static def getStable() {
@@ -187,10 +359,6 @@ static def getStable() {
         return "-SNAPSHOT"
     }
     return ""
-}
-
-tasks.named('publish').configure {
-    dependsOn 'reobfJar'
 }
 
 publishing {
@@ -209,13 +377,6 @@ publishing {
             artifactId = mod_id
             from(components.java)
         }
-    }
-}
-
-sonarqube {
-    properties {
-        property "sonar.projectName", "${mod_id}"
-        property "sonar.projectKey", "${sonar_project_key}"
     }
 }
 
@@ -281,27 +442,79 @@ task generateChangelog {
             logger.info("Single commit, ran git log command: git log -1 --pretty=%B and got ${commitMessages}");
         }
 
+        def generals = []
         def features = []
         def fixes = []
-        commitMessages.each { commitMessage ->
+        def compatibility = []
+        def mergedFeatures = []
+        def mergedFixes = []
+        def cleanup = false
+        commitMessages.each { String commitMessage ->
             commitMessage = removeHighUnicodeChars(commitMessage) // Remove high Unicode characters
             commitMessage = removeDevSection(commitMessage) // Remove [DEV] section
 
-            if (commitMessage.startsWith('feat: ')) {
-                features.add(commitMessage.replaceFirst('feat: ', '').trim())
+            if (commitMessage.startsWith('[General]: ')) {
+                generals.add(commitMessage.replaceFirst('\\[General]: ', '').trim())
+            } else if (commitMessage.startsWith('[Feat]: ')) {
+                features.add(commitMessage.replaceFirst('\\[Feat]: ', '').trim())
+            } else if (commitMessage.startsWith('[Fix]: ')) {
+                fixes.add(commitMessage.replaceFirst('\\[Fix]: ', '').trim())
+            } else if (commitMessage.startsWith('[Compatibility]: ')) {
+                compatibility.add(commitMessage.replaceFirst('\\[Compatibility]: ', '').trim())
+            } else if (commitMessage.startsWith('[Cleanup]: ')) {
+                cleanup = true
+            } else if (commitMessage.startsWith('feat: ')) {
+                mergedFeatures.add(commitMessage.replaceFirst('feat: ', '').trim())
             } else if (commitMessage.startsWith('fix: ')) {
-                fixes.add(commitMessage.replaceFirst('fix: ', '').trim())
+                mergedFixes.add(commitMessage.replaceFirst('fix: ', '').trim())
             }
         }
+
+        changelog.append("# Changelog\n\n")
+
+        changelog.append("### General\n")
+        changelog.append("- Update to version ${project.mod_version}\n")
+        if (cleanup) {
+            changelog.append("- Code cleanup\n")
+        }
+        if (generals) {
+            generals.each { general -> changelog.append("- ${formatMultilineMessage(general)}\n") }
+        }
+        changelog.append("\n")
 
         if (features) {
             changelog.append("### Features\n")
             features.each { feature -> changelog.append("- ${formatMultilineMessage(feature)}\n") }
+            changelog.append("\n")
         }
 
         if (fixes) {
             changelog.append("### Fixes\n")
             fixes.each { fix -> changelog.append("- ${formatMultilineMessage(fix)}\n") }
+            changelog.append("\n")
+        }
+
+        if (compatibility) {
+            changelog.append("### Compatibility\n")
+            compatibility.each { comp -> changelog.append("- ${formatMultilineMessage(comp)}\n") }
+            changelog.append("\n")
+        }
+
+        if (mergedFeatures || mergedFixes) {
+            changelog.append("\n")
+            changelog.append("## Merged from upstream\n")
+
+            if (mergedFeatures) {
+                changelog.append("### Features\n")
+                mergedFeatures.each { feature -> changelog.append("- ${formatMultilineMessage(feature)}\n") }
+                changelog.append("\n")
+            }
+
+            if (mergedFixes) {
+                changelog.append("### Fixes\n")
+                mergedFixes.each { fix -> changelog.append("- ${formatMultilineMessage(fix)}\n") }
+                changelog.append("\n")
+            }
         }
 
         // Store the changelog in a project property or an environment variable
@@ -315,18 +528,23 @@ task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
     dependsOn 'generateChangelog'
 
     apiToken = System.getenv("CURSEFORGE_TOKEN")
-    def mainFile = upload(project.curseforge_id, file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar"))
+    def mainFile = upload(project.curseforge_id, file("${project.layout.buildDirectory.get()}/libs/${base.archivesName.get()}-${version}.jar"))
     mainFile.changelogType = 'markdown'
     mainFile.changelog = {project.ext.changelog}
-    mainFile.addModLoader('NeoForge')
-    mainFile.addModLoader('Forge')
+    mainFile.addModLoader('Fabric')
     mainFile.releaseType = "${release_type}"
-    "${release_versions}".split(',').each {
-        mainFile.addGameVersion("${it}")
-    }
-    mainFile.addRequirement('sophisticated-core')
-    mainFile.addRequirement('sophisticated-storage')
+
+    mainFile.addGameVersion("${release_versions}".split(','))
+
+    // Dependencies
+    mainFile.addRequirement('fabric-api')
+    mainFile.addRequirement('sophisticated-core-(unofficial-fabric-port)')
+    mainFile.addRequirement('sophisticated-storage-(unofficial-fabric-port)')
+    mainFile.addEmbedded('porting-lib')
     mainFile.addOptional('jei')
+    mainFile.addOptional('emi')
+    mainFile.addOptional('roughly-enough-items')
+
     onlyIf { !project.ext.changelog.isEmpty() }
 }
 
@@ -334,13 +552,17 @@ modrinth {
     token = System.getenv("MODRINTH_TOKEN")
     projectId = "${modrinth_project_id}"
     versionType = "${release_type}"
-    uploadFile = jar
+    uploadFile = remapJar
     gameVersions = "${release_versions}".split(',').collect {e -> e}
-    loaders = ["forge", "neoforge"]
+    loaders = ["fabric"]
     dependencies {
-        required.project "sophisticated-core"
-        required.project "sophisticated-storage"
+        required.project "fabric-api"
+        required.project "sophisticated-core-(unofficial-fabric-port)"
+        required.project "sophisticated-storage-(unofficial-fabric-port)"
+        embedded.project "porting_lib"
         optional.project "jei"
+        optional.project "emi"
+        optional.project "rei"
     }
     changelog = provider {
         project.ext.changelog
@@ -349,8 +571,4 @@ modrinth {
 tasks.modrinth {
     dependsOn(tasks.generateChangelog)
     onlyIf { !project.ext.changelog.isEmpty() }
-}
-
-task printVersionName {
-    println "version:" + project.version
 }

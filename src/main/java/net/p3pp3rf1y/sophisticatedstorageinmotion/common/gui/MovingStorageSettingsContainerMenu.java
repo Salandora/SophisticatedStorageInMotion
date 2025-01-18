@@ -22,7 +22,7 @@ public class MovingStorageSettingsContainerMenu extends SettingsContainerMenu<IS
 	private CompoundTag lastSettingsNbt = null;
 
 	protected MovingStorageSettingsContainerMenu(int windowId, Player player, int entityId) {
-		this(ModEntities.MOVING_STORAGE_SETTINGS_CONTAINER_TYPE.get(), windowId, player, entityId);
+		this(ModEntities.MOVING_STORAGE_SETTINGS_CONTAINER_TYPE, windowId, player, entityId);
 	}
 
 	protected MovingStorageSettingsContainerMenu(MenuType<?> menuType, int windowId, Player player, int entityId) {
@@ -72,7 +72,7 @@ public class MovingStorageSettingsContainerMenu extends SettingsContainerMenu<IS
 				if (!settingsNbt.isEmpty()) {
 					settingsContents.put(MovingStorageWrapper.SETTINGS_TAG, settingsNbt);
 					if (player instanceof ServerPlayer serverPlayer) {
-						StorageInMotionPacketHandler.INSTANCE.sendToClient(serverPlayer, new MovingStorageContentsMessage(uuid, settingsContents));
+						StorageInMotionPacketHandler.sendToClient(serverPlayer, new MovingStorageContentsMessage(uuid, settingsContents));
 					}
 				}
 			});

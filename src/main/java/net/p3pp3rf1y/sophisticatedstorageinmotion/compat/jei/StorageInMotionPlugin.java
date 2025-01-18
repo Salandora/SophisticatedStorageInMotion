@@ -51,7 +51,7 @@ public class StorageInMotionPlugin implements IModPlugin {
 			return "{" + result + "}";
 		};
 
-		registration.registerSubtypeInterpreter(ModItems.STORAGE_MINECART.get(), movingStorageNbtInterpreter);
+		registration.registerSubtypeInterpreter(ModItems.STORAGE_MINECART, movingStorageNbtInterpreter);
 	}
 
 	@Override
@@ -80,7 +80,9 @@ public class StorageInMotionPlugin implements IModPlugin {
 
 	@Override
 	public void registerRecipes(IRecipeRegistration registration) {
-		registration.addRecipes(RecipeTypes.CRAFTING, AssembleRecipesMaker.getShapelessCraftingRecipes(ModItems.STORAGE_MINECART.get()));
+		registration.addRecipes(RecipeTypes.CRAFTING, AssembleRecipesMaker.getShapelessCraftingRecipes(ModItems.STORAGE_MINECART));
+		registration.addRecipes(RecipeTypes.CRAFTING, MovingStorageTierUpgradeRecipesMaker.getShapedCraftingRecipes());
+		registration.addRecipes(RecipeTypes.CRAFTING, MovingStorageTierUpgradeRecipesMaker.getShapelessCraftingRecipes());
 	}
 
 	@Override

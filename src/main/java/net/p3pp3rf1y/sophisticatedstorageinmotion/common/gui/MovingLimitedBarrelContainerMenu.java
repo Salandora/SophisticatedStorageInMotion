@@ -11,7 +11,7 @@ import java.util.List;
 
 public class MovingLimitedBarrelContainerMenu<T extends Entity & IMovingStorageEntity> extends MovingStorageContainerMenu<T> {
 	public MovingLimitedBarrelContainerMenu(int containerId, Player player, int entityId) {
-		super(ModEntities.MOVING_LIMITED_BARREL_CONTAINER_TYPE.get(), containerId, player, entityId);
+		super(ModEntities.MOVING_LIMITED_BARREL_CONTAINER_TYPE, containerId, player, entityId);
 	}
 
 	public static MovingLimitedBarrelContainerMenu<?> fromBuffer(int windowId, Inventory playerInventory, FriendlyByteBuf buffer) {

@@ -1,0 +1,28 @@
+{
+  "fabric:load_conditions": [
+    {
+      "condition": "sophisticatedcore:item_enabled",
+      "itemRegistryName": "sophisticatedstorageinmotion:storage_minecart"
+    }
+  ],
+  "type": "sophisticatedstorageinmotion:moving_storage_tier_upgrade_shaped_recipe",
+  "key": {
+    "M": {
+      "tag": "c:iron_ingots"
+    },
+    "S": {
+      "fabric:type": "sophisticatedstorage:moving_storage",
+      "movingStorageItem": "sophisticatedstorageinmotion:storage_minecart",
+      "storageItem": "sophisticatedstorage:barrel"
+    }
+  },
+  "pattern": [
+    "MMM",
+    "MSM",
+    "MMM"
+  ],
+  "result": {
+    "item": "sophisticatedstorageinmotion:storage_minecart",
+    "nbt": "{storageItem:{Count:1b,id:\"sophisticatedstorage:iron_barrel\"}}"
+  }
+}
