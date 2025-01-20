@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.client.gui;
 
+import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.player.LocalPlayer;
@@ -11,7 +12,6 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
-import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedstorage.block.BarrelMaterial;
 import net.p3pp3rf1y.sophisticatedstorage.client.gui.StorageTranslationHelper;
@@ -62,7 +62,7 @@ public class PaintbrushMovingStorageOverlay {
 		}
 	}
 
-	public static final IGuiOverlay HUD_PAINTBRUSH_INFO = (gui, guiGraphics, partialTicks, width, height) -> {
+	public static final HudRenderCallback HUD_PAINTBRUSH_INFO = (guiGraphics, deltaTracker) -> {
 		Minecraft mc = Minecraft.getInstance();
 		if (mc.screen != null) {
 			if (!mc.screen.isPauseScreen()) {
@@ -78,20 +78,20 @@ public class PaintbrushMovingStorageOverlay {
 			return;
 		}
 
-		InventoryHelper.getItemFromEitherHand(player, ModItems.PAINTBRUSH.get()).flatMap(paintbrush -> getItemRequirementsFor(paintbrush, player, entityHitResult.getEntity()))
+		InventoryHelper.getItemFromEitherHand(player, ModItems.PAINTBRUSH).flatMap(paintbrush -> getItemRequirementsFor(paintbrush, player, entityHitResult.getEntity()))
 				.ifPresent(itemRequirements -> {
 					if (itemRequirements.itemsMissing().isEmpty()) {
 						return;
 					}
 
-					Component missingItems = StorageTranslationHelper.INSTANCE.translItemOverlayMessage(ModItems.PAINTBRUSH.get(), "missing_items");
+					Component missingItems = StorageTranslationHelper.INSTANCE.translItemOverlayMessage(ModItems.PAINTBRUSH, "missing_items");
 					Font font = mc.font;
 					int i = font.width(missingItems);
-					int x = (gui.screenWidth - i) / 2;
-					int y = gui.screenHeight - 75 - 10;
+					int x = (guiGraphics.guiWidth() - i) / 2;
+					int y = guiGraphics.guiHeight() - 75 - 10;
 					guiGraphics.drawString(font, missingItems,  x + 1, y, DyeColor.WHITE.getTextColor());
 
-					x = (gui.screenWidth - itemRequirements.itemsMissing().size() * 18) / 2;
+					x = (guiGraphics.guiWidth() - itemRequirements.itemsMissing().size() * 18) / 2;
 					for (ItemStack missingItem : itemRequirements.itemsMissing()) {
 						guiGraphics.renderItem(missingItem, x, y + 10);
 						guiGraphics.renderItemDecorations(font, missingItem, x, y + 10);

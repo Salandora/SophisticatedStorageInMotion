@@ -22,7 +22,7 @@ public class StorageToolHandler {
 	}
 
 	public static InteractionResult onStorageToolInteract(Player player, Level world, InteractionHand hand, Entity entity, @Nullable EntityHitResult hitResult) {
-		ItemStack itemInHand = player.getItemInHand(event.getHand());
+		ItemStack itemInHand = player.getItemInHand(hand);
 		if (!(entity instanceof IMovingStorageEntity movingStorageEntity) || itemInHand.getItem() != ModItems.STORAGE_TOOL || movingStorageEntity.getStorageHolder().isPacked()) {
 			return InteractionResult.PASS;
 		}

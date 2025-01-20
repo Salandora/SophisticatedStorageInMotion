@@ -611,7 +611,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 			return true;
 		}
 
-		ItemBase packingTapeItem = ModItems.PACKING_TAPE.get();
+		ItemBase packingTapeItem = ModItems.PACKING_TAPE;
 		Component packingTapeItemName = packingTapeItem.getName(new ItemStack(packingTapeItem)).copy().withStyle(ChatFormatting.GREEN);
 		player.sendSystemMessage(StorageTranslationHelper.INSTANCE.translStatusMessage("too_many_item_entity_drops",
 				entity.getName().copy().withStyle(ChatFormatting.GREEN),

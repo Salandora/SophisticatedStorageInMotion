@@ -7,6 +7,6 @@ public class StorageInMotionPacketHandler extends PacketHandler {
 	public static void init() {
 		registerC2SMessage(OpenMovingStorageInventoryMessage.class, OpenMovingStorageInventoryMessage::new);
 		registerS2CMessage(MovingStorageContentsMessage.class, MovingStorageContentsMessage::new);
-		registerMessage(RequestMovingStorageInventoryContentsMessage.class, RequestMovingStorageInventoryContentsMessage::new);
+		registerC2SMessage(RequestMovingStorageInventoryContentsMessage.class, RequestMovingStorageInventoryContentsMessage::new);
 	}
 }
