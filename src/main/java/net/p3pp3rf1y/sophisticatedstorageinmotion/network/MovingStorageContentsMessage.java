@@ -6,6 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.p3pp3rf1y.sophisticatedcore.client.render.ClientStorageContentsTooltipBase;
 import net.p3pp3rf1y.sophisticatedcore.network.SimplePacketBase;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.MovingStorageData;
 import org.jetbrains.annotations.Nullable;
@@ -41,6 +42,7 @@ public class MovingStorageContentsMessage extends SimplePacketBase {
 			}
 
 			MovingStorageData.get(this.storageUuid).setContents(this.storageUuid, this.contents);
+			ClientStorageContentsTooltipBase.refreshContents();
 		});
 		return true;
 	}
