@@ -1,7 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.compat.jei;
 
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -11,23 +10,26 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.p3pp3rf1y.sophisticatedcore.compat.jei.ClientRecipeHelper;
+import net.p3pp3rf1y.sophisticatedcore.compat.jei.subtypes.PropertyBasedSubtypeInterpreter;
 import net.p3pp3rf1y.sophisticatedstorage.item.StorageBlockItem;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.SophisticatedStorageInMotion;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.crafting.MovingStorageFromStorageRecipe;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.function.Function;
 
 public class AssembleRecipesMaker {
-	private AssembleRecipesMaker() {}
+	private AssembleRecipesMaker() {
+	}
 
-	public static List<RecipeHolder<CraftingRecipe>> getShapelessCraftingRecipes() {
+	public static List<RecipeHolder<CraftingRecipe>> getShapelessCraftingRecipes(Function<ItemStack, Optional<PropertyBasedSubtypeInterpreter>> getSubtypeInterpreter) {
 		RecipeConstructor<MovingStorageFromStorageRecipe> constructRecipe = (originalRecipe, ingredients, result) -> new ShapelessRecipe("", CraftingBookCategory.MISC, result, ingredients);
-		return getCraftingRecipes(constructRecipe, MovingStorageFromStorageRecipe.class);
+		return getCraftingRecipes(constructRecipe, MovingStorageFromStorageRecipe.class, getSubtypeInterpreter);
 	}
 
 	@NotNull
-	private static <T extends CraftingRecipe> List<RecipeHolder<CraftingRecipe>> getCraftingRecipes(RecipeConstructor<T> constructRecipe, Class<T> originalRecipeClass) {
+	private static <T extends CraftingRecipe> List<RecipeHolder<CraftingRecipe>> getCraftingRecipes(RecipeConstructor<T> constructRecipe, Class<T> originalRecipeClass, Function<ItemStack, Optional<PropertyBasedSubtypeInterpreter>> getSubtypeInterpreter) {
 		return ClientRecipeHelper.transformAllRecipesOfTypeIntoMultiple(RecipeType.CRAFTING, originalRecipeClass, recipe -> {
 			List<RecipeHolder<CraftingRecipe>> itemGroupRecipes = new ArrayList<>();
 
@@ -70,7 +72,9 @@ public class AssembleRecipesMaker {
 				craftinginventory.setItem(storageIngredientIndex, storageItem.copy());
 
 				ItemStack result = ClientRecipeHelper.assemble(recipe, craftinginventory.asCraftInput());
-				ResourceLocation id = ResourceLocation.fromNamespaceAndPath(SophisticatedStorageInMotion.MOD_ID, "assemble_moving_storage_" + BuiltInRegistries.ITEM.getKey(result.getItem()).getPath() + result.getComponentsPatch().toString().toLowerCase(Locale.ROOT).replaceAll("[{\",}:>=@\\[\\]\\s]", "_"));
+				ResourceLocation id = ResourceLocation.fromNamespaceAndPath(SophisticatedStorageInMotion.MOD_ID, "assemble_moving_storage_"
+						+ getSubtypeInterpreter.apply(result).map(intepreter -> intepreter.getRegistrySanitizedItemString(result)).orElse("")
+				);
 				itemGroupRecipes.add(new RecipeHolder<>(id, constructRecipe.construct(recipe, ingredientsCopy, result)));
 			}
 
