@@ -1,17 +1,17 @@
 {
-  "type": "sophisticatedstorageinmotion:moving_storage_tier_upgrade_shaped_recipe",
-  "conditions": [
+  "fabric:load_conditions": [
     {
-      "type": "sophisticatedcore:item_enabled",
+      "condition": "sophisticatedcore:item_enabled",
       "itemRegistryName": "sophisticatedstorageinmotion:storage_boat"
     }
   ],
+  "type": "sophisticatedstorageinmotion:moving_storage_tier_upgrade_shaped_recipe",
   "key": {
     "M": {
-      "tag": "forge:ingots/copper"
+      "tag": "c:copper_ingots"
     },
     "S": {
-      "type": "sophisticatedstorageinmotion:moving_storage",
+      "fabric:type": "sophisticatedstorage:moving_storage",
       "movingStorageItem": "sophisticatedstorageinmotion:storage_boat",
       "storageItem": "sophisticatedstorage:chest"
     }
