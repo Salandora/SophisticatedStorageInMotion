@@ -29,6 +29,7 @@ public class ClientEventHandler {
 
 	private static void registerClientExtensions() {
 		BuiltinItemRendererRegistry.INSTANCE.register(ModItems.STORAGE_MINECART, new StorageMinecartItemRenderer());
+		BuiltinItemRendererRegistry.INSTANCE.register(ModItems.STORAGE_BOAT, new StorageBoatItemRenderer());
 	}
 
 	private static void registerOverlay() {

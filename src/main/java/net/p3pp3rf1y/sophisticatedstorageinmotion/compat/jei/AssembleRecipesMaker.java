@@ -11,7 +11,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.p3pp3rf1y.sophisticatedcore.compat.common.ClientRecipeHelper;
-import net.p3pp3rf1y.sophisticatedcore.util.ItemBase;
 import net.p3pp3rf1y.sophisticatedstorage.item.StorageBlockItem;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.SophisticatedStorageInMotion;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.crafting.MovingStorageFromStorageRecipe;
@@ -22,7 +21,7 @@ import java.util.*;
 public class AssembleRecipesMaker {
 	private AssembleRecipesMaker() {}
 
-	public static List<CraftingRecipe> getShapelessCraftingRecipes(ItemBase item) {
+	public static List<CraftingRecipe> getShapelessCraftingRecipes() {
 		RecipeConstructor<MovingStorageFromStorageRecipe> constructRecipe = (originalRecipe, id, ingredients, result) -> new ShapelessRecipe(id, "", CraftingBookCategory.MISC, result, ingredients);
 		return getCraftingRecipes(constructRecipe, MovingStorageFromStorageRecipe.REGISTERED_RECIPES, MovingStorageFromStorageRecipe.class);
 	}

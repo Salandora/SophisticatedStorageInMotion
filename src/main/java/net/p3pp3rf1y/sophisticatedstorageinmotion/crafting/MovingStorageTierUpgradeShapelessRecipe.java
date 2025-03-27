@@ -42,6 +42,7 @@ public class MovingStorageTierUpgradeShapelessRecipe extends ShapelessRecipe imp
 			upgradedStorageItem.setTag(originalStorageItem.getTag());
 			NBTHelper.setInteger(upgradedStorageItem, StorageWrapper.NUMBER_OF_INVENTORY_SLOTS_TAG, MovingStorageWrapper.getDefaultNumberOfInventorySlots(upgradedStorageItem));
 			NBTHelper.setInteger(upgradedStorageItem, StorageWrapper.NUMBER_OF_UPGRADE_SLOTS_TAG, MovingStorageWrapper.getDefaultNumberOfUpgradeSlots(upgradedStorageItem));
+			upgradedMovingStorage.setTag(originalMovingStorage.getTag());
 			MovingStorageItem.setStorageItem(upgradedMovingStorage, upgradedStorageItem);
 		});
 		return upgradedMovingStorage;

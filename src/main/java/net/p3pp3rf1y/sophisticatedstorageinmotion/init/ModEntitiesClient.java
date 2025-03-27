@@ -2,6 +2,7 @@ package net.p3pp3rf1y.sophisticatedstorageinmotion.init;
 
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.gui.screens.MenuScreens;
+import net.p3pp3rf1y.sophisticatedstorageinmotion.client.StorageBoatRenderer;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.client.StorageMinecartRenderer;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.client.gui.MovingLimitedBarrelScreen;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.client.gui.MovingLimitedBarrelSettingsScreen;
@@ -16,6 +17,7 @@ public class ModEntitiesClient {
 
 	private static void registerEntityRenderers() {
 		EntityRendererRegistry.register(ModEntities.STORAGE_MINECART, StorageMinecartRenderer::new);
+		EntityRendererRegistry.register(ModEntities.STORAGE_BOAT, StorageBoatRenderer::new);
 	}
 
 	private static void onMenuScreenRegister() {

@@ -82,28 +82,34 @@ public abstract class MovingStorageItem extends ItemBase implements IStashStorag
 		return NBTHelper.getCompound(stack, EntityStorageHolder.STORAGE_ITEM_TAG).map(ItemStack::of).orElse(ItemStack.EMPTY);
 	}
 
-	public abstract ItemStack getUncraftRemainingItem();
+	public abstract ItemStack getUncraftRemainingItem(ItemStack input);
 
 	@Override
 	public void addCreativeTabItems(Consumer<ItemStack> itemConsumer) {
 		if (Config.COMMON.enabledItems.isItemEnabled(this)) {
-			itemConsumer.accept(createWithStorage(this, WoodStorageBlockItem.setWoodType(new ItemStack(ModBlocks.BARREL_ITEM), WoodType.SPRUCE)));
-			ItemStack limitedIStack = new ItemStack(ModBlocks.LIMITED_GOLD_BARREL_1_ITEM);
-			if (limitedIStack.getItem() instanceof ITintableBlockItem tintableBlockItem) {
+			List<ItemStack> movingStorages = getBaseMovingStorageItems();
+			movingStorages.forEach(movingStorage ->  {
+				itemConsumer.accept(createWithStorage(movingStorage.copy(), WoodStorageBlockItem.setWoodType(new ItemStack(ModBlocks.BARREL_ITEM), WoodType.SPRUCE)));
+				ItemStack limitedIStack = new ItemStack(ModBlocks.LIMITED_GOLD_BARREL_1_ITEM);
+				if (limitedIStack.getItem() instanceof ITintableBlockItem tintableBlockItem) {
 				tintableBlockItem.setMainColor(limitedIStack, ColorHelper.getColor(DyeColor.YELLOW.getTextureDiffuseColors()));
 				tintableBlockItem.setAccentColor(limitedIStack, ColorHelper.getColor(DyeColor.LIME.getTextureDiffuseColors()));
-			}
-			itemConsumer.accept(createWithStorage(this, limitedIStack));
-			itemConsumer.accept(createWithStorage(this, WoodStorageBlockItem.setWoodType(new ItemStack(ModBlocks.LIMITED_COPPER_BARREL_2), WoodType.BIRCH)));
-			itemConsumer.accept(createWithStorage(this, WoodStorageBlockItem.setWoodType(new ItemStack(ModBlocks.LIMITED_IRON_BARREL_3), WoodType.ACACIA)));
-			itemConsumer.accept(createWithStorage(this, WoodStorageBlockItem.setWoodType(new ItemStack(ModBlocks.LIMITED_DIAMOND_BARREL_4), WoodType.CRIMSON)));
-			itemConsumer.accept(createWithStorage(this, WoodStorageBlockItem.setWoodType(new ItemStack(ModBlocks.NETHERITE_CHEST_ITEM), WoodType.BAMBOO)));
-			itemConsumer.accept(createWithStorage(this, new ItemStack(ModBlocks.IRON_SHULKER_BOX_ITEM)));
+				}
+				itemConsumer.accept(createWithStorage(movingStorage.copy(), limitedIStack));
+				itemConsumer.accept(createWithStorage(movingStorage.copy(), WoodStorageBlockItem.setWoodType(new ItemStack(ModBlocks.LIMITED_COPPER_BARREL_2), WoodType.BIRCH)));
+				itemConsumer.accept(createWithStorage(movingStorage.copy(), WoodStorageBlockItem.setWoodType(new ItemStack(ModBlocks.LIMITED_IRON_BARREL_3), WoodType.ACACIA)));
+				itemConsumer.accept(createWithStorage(movingStorage.copy(), WoodStorageBlockItem.setWoodType(new ItemStack(ModBlocks.LIMITED_DIAMOND_BARREL_4), WoodType.CRIMSON)));
+				itemConsumer.accept(createWithStorage(movingStorage.copy(), WoodStorageBlockItem.setWoodType(new ItemStack(ModBlocks.NETHERITE_CHEST_ITEM), WoodType.BAMBOO)));
+				itemConsumer.accept(createWithStorage(movingStorage.copy(), new ItemStack(ModBlocks.IRON_SHULKER_BOX_ITEM)));
+			});
 		}
 	}
 
-	public static ItemStack createWithStorage(Item movingStorageItem, ItemStack storageStack) {
-		ItemStack movingStorage = new ItemStack(movingStorageItem);
+	public List<ItemStack> getBaseMovingStorageItems() {
+		return List.of(new ItemStack(this));
+	}
+
+	public static ItemStack createWithStorage(ItemStack movingStorage, ItemStack storageStack) {
 		MovingStorageItem.setStorageItem(movingStorage, storageStack);
 		return movingStorage;
 	}

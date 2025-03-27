@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "conditions": [
+    {
+      "type": "sophisticatedcore:item_enabled",
+      "itemRegistryName": "sophisticatedstorageinmotion:storage_boat"
+    }
+  ],
+  "ingredients": [
+    {
+      "item": "minecraft:bamboo_chest_raft"
+    },
+    {
+      "item": "minecraft:redstone_torch"
+    }
+  ],
+  "result": {
+    "item": "sophisticatedstorageinmotion:storage_boat",
+    "nbt": "{boatType:\"bamboo\",storageItem:{Count:1b,id:\"sophisticatedstorage:chest\",tag:{woodType:\"oak\"}}}"
+  }
+}

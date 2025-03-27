@@ -22,7 +22,7 @@ import java.util.*;
 public class AssembleRecipesMaker {
 	private AssembleRecipesMaker() {}
 
-	public static List<CraftingRecipe> getShapelessCraftingRecipes(ItemBase item) {
+	public static List<CraftingRecipe> getShapelessCraftingRecipes(Item item) {
 		AssembleRecipesMaker.RecipeConstructor<MovingStorageFromStorageRecipe> constructRecipe = (originalRecipe, id, ingredients, result) -> new ShapelessRecipe(id, "", CraftingBookCategory.MISC, result, ingredients);
 		return getCraftingRecipes(constructRecipe, MovingStorageFromStorageRecipe.REGISTERED_RECIPES, MovingStorageFromStorageRecipe.class);
 	}

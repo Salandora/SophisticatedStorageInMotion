@@ -1,0 +1,21 @@
+{
+  "type": "sophisticatedstorageinmotion:moving_storage_from_storage",
+  "conditions": [
+    {
+      "type": "sophisticatedcore:item_enabled",
+      "itemRegistryName": "sophisticatedstorageinmotion:storage_boat"
+    }
+  ],
+  "ingredients": [
+    {
+      "item": "minecraft:cherry_boat"
+    },
+    {
+      "tag": "sophisticatedstorage:all_storage"
+    }
+  ],
+  "result": {
+    "item": "sophisticatedstorageinmotion:storage_boat",
+    "nbt": "{boatType:\"cherry\"}"
+  }
+}

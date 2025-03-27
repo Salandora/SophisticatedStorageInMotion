@@ -18,10 +18,7 @@ import net.p3pp3rf1y.sophisticatedstorageinmotion.crafting.MovingStorageTierUpgr
 import net.p3pp3rf1y.sophisticatedstorageinmotion.item.MovingStorageItem;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 
 public class MovingStorageTierUpgradeRecipesMaker {
 	private MovingStorageTierUpgradeRecipesMaker() {}
@@ -54,28 +51,42 @@ public class MovingStorageTierUpgradeRecipesMaker {
 					}
 				}, 3, 3);
 				NonNullList<Ingredient> ingredientsCopy = NonNullList.createWithCapacity(ingredients.size());
+				List<ItemStack> baseMovingStorageItems = Collections.emptyList();
+				int movingStorageIngredientIndex = -1;
 				int i = 0;
 				for (Ingredient ingredient : ingredients) {
 					ItemStack[] ingredientItems = ingredient.getItems();
-					if (ingredientItems.length > 0 && ingredientItems[0].getItem() instanceof MovingStorageItem) {
-						ItemStack movingStorage = ingredientItems[0].copy();
-						MovingStorageItem.setStorageItem(movingStorage, storageItem);
-						ingredientsCopy.add(i, Ingredient.of(movingStorage));
-						craftinginventory.setItem(i, movingStorage.copy());
+					if (ingredientItems.length > 0 && ingredientItems[0].getItem() instanceof MovingStorageItem movingStorageItem) {
+						baseMovingStorageItems = movingStorageItem.getBaseMovingStorageItems();
+						movingStorageIngredientIndex = i;
 					} else {
-						ingredientsCopy.add(i, ingredient);
 						if (!ingredient.isEmpty()) {
 							craftinginventory.setItem(i, ingredientItems[0]);
 						}
 					}
+					ingredientsCopy.add(i, ingredient);
 					i++;
 				}
-				ItemStack result = ClientRecipeHelper.assemble(recipe, craftinginventory);
-				ResourceLocation id = SophisticatedStorageInMotion.getRL("tier_upgrade_" + BuiltInRegistries.ITEM.getKey(storageItem.getItem()).getPath() + result.getOrCreateTag().toString().toLowerCase(Locale.ROOT).replaceAll("[{\",}:>=@\\[\\]\\s]", "_"));
-				itemGroupRecipes.add(constructRecipe.construct(recipe, id, ingredientsCopy, result));
+
+				for (ItemStack movingStorage : baseMovingStorageItems) {
+					itemGroupRecipes.add(createMovingStorageTierUpgradeRecipe(constructRecipe, recipe, storageItem, movingStorage, ingredientsCopy, movingStorageIngredientIndex, craftinginventory));
+				}
+
+
 			});
 			return itemGroupRecipes;
 		});
+	}
+
+	private static <T extends CraftingRecipe> CraftingRecipe createMovingStorageTierUpgradeRecipe(RecipeConstructor<T> constructRecipe, T recipe, ItemStack storageItem, ItemStack movingStorage, NonNullList<Ingredient> ingredients, int movingStorageIngredientIndex, CraftingContainer craftinginventory) {
+		MovingStorageItem.setStorageItem(movingStorage, storageItem);
+		NonNullList<Ingredient> ingredientsCopy = NonNullList.createWithCapacity(ingredients.size());
+		ingredientsCopy.addAll(ingredients);
+		ingredientsCopy.set(movingStorageIngredientIndex, Ingredient.of(movingStorage));
+		craftinginventory.setItem(movingStorageIngredientIndex, movingStorage.copy());
+		ItemStack result = ClientRecipeHelper.assemble(recipe, craftinginventory);
+		ResourceLocation id = SophisticatedStorageInMotion.getRL("tier_upgrade_" + BuiltInRegistries.ITEM.getKey(storageItem.getItem()).getPath() + result.getOrCreateTag().toString().toLowerCase(Locale.ROOT).replaceAll("[{\",}:>=@\\[\\]\\s]", "_"));
+		return constructRecipe.construct(recipe, id, ingredientsCopy, result);
 	}
 
 	private static List<ItemStack> getStorageItems(CraftingRecipe recipe) {
@@ -84,7 +95,7 @@ public class MovingStorageTierUpgradeRecipesMaker {
 			ItemStack[] ingredientItems = ingredient.getItems();
 			for (ItemStack ingredientItem : ingredientItems) {
 				Item item = ingredientItem.getItem();
-				if (item instanceof MovingStorageItem && MovingStorageItem.getStorageItem(ingredientItem).getItem() instanceof StorageBlockItem storageBlockItem) {
+				if (item instanceof MovingStorageItem && MovingStorageItem.getStorageItem(ingredientItem).getItem() instanceof StorageBlockItem) {
 					storageItems.add(MovingStorageItem.getStorageItem(ingredientItem));
 				}
 			}

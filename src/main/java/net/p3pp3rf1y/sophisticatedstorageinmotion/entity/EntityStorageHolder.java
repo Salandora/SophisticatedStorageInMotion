@@ -54,6 +54,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
 
 public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implements ILockable, ICountDisplay, ITierDisplay, IUpgradeDisplay, IFillLevelDisplay, IMaterialHolder {
 	public static final String UPGRADES_VISIBLE_TAG = "upgradesVisible";
@@ -276,7 +277,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 	}
 
 	private void runPickupOnItemEntities() {
-		AABB aabb = entity.getBoundingBox();
+		AABB aabb = entity.getBoundingBox().inflate(0.2D);
 		List<ItemEntity> collidedWithItemEntities = entity.level().getEntitiesOfClass(ItemEntity.class, aabb);
 		collidedWithItemEntities.forEach(itemEntity -> {
 			if (itemEntity.isAlive()) {
@@ -450,7 +451,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 					storageItem.removeTagKey(StorageWrapper.UUID_TAG);
 				});
 			}
-			ItemStack drop = new ItemStack(entity.getDropItem());
+			ItemStack drop = entity.getDropStack();
 			drop.getOrCreateTag().put(STORAGE_ITEM_TAG, storageItem.save(new CompoundTag()));
 			if (entity.hasCustomName()) {
 				drop.setHoverName(entity.getCustomName());
@@ -590,7 +591,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 		}
 	}
 
-	public boolean canBeHurtByWithFeedback(DamageSource source) {
+	private boolean canBeHurtByWithFeedback(DamageSource source) {
 		if (Config.COMMON.dropPacked.get() || isPacked() || !(source.getEntity() instanceof Player player)) {
 			return true;
 		}
@@ -642,5 +643,15 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 	@Override
 	public boolean canHoldMaterials() {
 		return isBarrel(entity.getStorageItem());
+	}
+
+	public boolean hurt(DamageSource source, float amount, BiFunction<DamageSource, Float, Boolean> superHurt) {
+		if (canBeHurtByWithFeedback(source) && superHurt.apply(source, amount)) {
+			if (source.getEntity() instanceof Player player && player.getAbilities().instabuild && entity.isRemoved()) {
+				dropAllItems();
+			}
+			return true;
+		}
+		return false;
 	}
 }

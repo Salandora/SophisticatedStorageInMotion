@@ -1,6 +1,5 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.entity;
 
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 public interface IMovingStorageEntity {
@@ -10,5 +9,5 @@ public interface IMovingStorageEntity {
 
 	EntityStorageHolder<?> getStorageHolder();
 
-	Item getDropItem();
+	ItemStack getDropStack();
 }
