@@ -46,11 +46,11 @@ repositories {
         url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/"
     }
 
-    maven { url "https://maven.tterrag.com/" }
+    maven { url = "https://maven.tterrag.com/" }
     maven { url = "https://modmaven.dev/" }
-    maven { url "https://minecraft.curseforge.com/api/maven/"}
+    maven { url = "https://minecraft.curseforge.com/api/maven/"}
     maven {
-        url "https://www.cursemaven.com"
+        url = "https://www.cursemaven.com"
         content {
             includeGroup "curse.maven"
         }
@@ -321,7 +321,7 @@ tasks.register('fixIntelliJResources', Copy) {
         return
 
     dependsOn processResources
-    group "fabric"
+    group = "fabric"
 
     from processResources
     into ideaResourceOutput[1]
