@@ -7,7 +7,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
-import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedstorage.block.*;
 import net.p3pp3rf1y.sophisticatedstorage.init.ModItems;
 import net.p3pp3rf1y.sophisticatedstorage.item.StorageToolItem;
@@ -22,12 +21,16 @@ public class StorageToolHandler {
 	}
 
 	public static InteractionResult onStorageToolInteract(Player player, Level world, InteractionHand hand, Entity entity, @Nullable EntityHitResult hitResult) {
-		if (!(entity instanceof IMovingStorageEntity movingStorageEntity)) {
+		ItemStack itemInHand = player.getItemInHand(hand,);
+		if (!(entity instanceof IMovingStorageEntity movingStorageEntity) || itemInHand.getItem() != ModItems.STORAGE_TOOL.get() || movingStorageEntity.getStorageHolder().isPacked()) {
 			return InteractionResult.PASS;
 		}
 
-		return InventoryHelper.getItemFromEitherHand(player, ModItems.STORAGE_TOOL.get())
-				.map(storageTool -> tryStorageToolInteract(movingStorageEntity, storageTool)).orElse(InteractionResult.PASS);
+		InteractionResult result = tryStorageToolInteract(movingStorageEntity, itemInHand);
+
+		if (result.consumesAction()) {
+			return result;
+		}
 	}
 
 	private static InteractionResult tryStorageToolInteract(IMovingStorageEntity movingStorageEntity, ItemStack storageTool) {

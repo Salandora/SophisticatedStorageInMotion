@@ -1,20 +1,34 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.common;
 
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.Container;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.EntityHitResult;
 import net.p3pp3rf1y.sophisticatedcore.event.common.PlayerEvents;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
+import net.p3pp3rf1y.sophisticatedstorage.Config;
 import net.p3pp3rf1y.sophisticatedstorage.block.ItemContentsStorage;
+import net.p3pp3rf1y.sophisticatedstorage.block.StorageBlockBase;
 import net.p3pp3rf1y.sophisticatedstorage.block.StorageBlockEntity;
 import net.p3pp3rf1y.sophisticatedstorage.block.StorageWrapper;
+import net.p3pp3rf1y.sophisticatedstorage.init.ModItems;
+import net.p3pp3rf1y.sophisticatedstorage.item.PaintbrushItem;
 import net.p3pp3rf1y.sophisticatedstorage.item.ShulkerBoxItem;
 import net.p3pp3rf1y.sophisticatedstorage.item.StackStorageWrapper;
 import net.p3pp3rf1y.sophisticatedstorage.item.StorageBlockItem;
+import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.IMovingStorageEntity;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.MovingStorageData;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.item.MovingStorageItem;
 import org.jetbrains.annotations.Nullable;
@@ -30,7 +44,59 @@ public class CommonEventHandler {
 		PlayerEvents.ITEM_CRAFTED.register(CommonEventHandler::onMovingStorageCraftedFromShulkerBox);
 		UseEntityCallback.EVENT.register(TierUpgradeHandler::onTierUpgradeInteract);
 		UseEntityCallback.EVENT.register(StorageToolHandler::onStorageToolInteract);
+		UseEntityCallback.EVENT.register(CommonEventHandler::onPacked);
+		UseEntityCallback.EVENT.register(CommonEventHandler::onPaintbrushInteract);
+		UseEntityCallback.EVENT.register(CommonEventHandler::onStorageUpgradeInteract);
 	}
+
+	private static InteractionResult  onStorageUpgradeInteract(Player player, Level world, InteractionHand hand, Entity entity, @Nullable EntityHitResult hitResult) {
+		ItemStack itemInHand = player.getItemInHand(hand);
+		if (!(entity instanceof IMovingStorageEntity movingStorage) || !(itemInHand.getItem() instanceof UpgradeItemBase<?>)) {
+			return InteractionResult.PASS;
+		}
+
+		if (StorageBlockBase.tryAddSingleUpgrade(player, hand, itemInHand, movingStorage.getStorageHolder().getStorageWrapper())) {
+			return InteractionResult.SUCCESS;
+		}
+		return InteractionResult.PASS;
+	}
+
+	private static InteractionResult onPaintbrushInteract(Player player, Level world, InteractionHand hand, Entity entity, @Nullable EntityHitResult hitResult) {
+		ItemStack itemInHand = player.getItemInHand(hand);
+		if (!(entity instanceof IMovingStorageEntity movingStorage) || itemInHand.getItem() != ModItems.PAINTBRUSH) {
+			return InteractionResult.PASS;
+		}
+
+		if (!(movingStorage.getStorageItem().getItem() instanceof BlockItem blockItem)) {
+			return InteractionResult.PASS;
+		}
+		BlockState state = blockItem.getBlock().defaultBlockState();
+		SoundEvent placeSound = state.getSoundType().getPlaceSound();
+		if (PaintbrushItem.paint(player, itemInHand, movingStorage.getStorageHolder(), movingStorage.getStorageHolder().getStorageWrapper(),
+				entity.position(), Direction.UP, placeSound)) {
+			return InteractionResult.SUCCESS;
+		}
+		return InteractionResult.PASS;
+	}
+
+	private static InteractionResult onPacked(Player player, Level world, InteractionHand hand, Entity entity, @Nullable EntityHitResult hitResult) {
+		ItemStack itemInHand = player.getItemInHand(hand);
+		if (!(entity instanceof IMovingStorageEntity movingStorage) || itemInHand.getItem() != ModItems.PACKING_TAPE || Config.COMMON.dropPacked.get()) {
+			return InteractionResult.PASS;
+		}
+
+		if (movingStorage.getStorageHolder().pack()) {
+			if (!player.isCreative()) {
+				itemInHand.setDamageValue(itemInHand.getDamageValue() + 1);
+				if (itemInHand.getDamageValue() >= itemInHand.getMaxDamage()) {
+					player.setItemInHand(hand, ItemStack.EMPTY);
+				}
+			}
+			return InteractionResult.SUCCESS;
+		}
+		return InteractionResult.PASS;
+	}
+
 
 	private static void onMovingStorageUncrafted(Player player, ItemStack result, Container craftMatrix) {
 		if (player.level().isClientSide() || !(result.getItem() instanceof StorageBlockItem) || !isUncraftedFromSingleMovingStorage(player.getInventory())) {

@@ -1,41 +1,35 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.client;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
+import io.github.fabricators_of_create.porting_lib.core.util.Lazy;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.client.model.geom.EntityModelSet;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.StorageMinecart;
-import net.p3pp3rf1y.sophisticatedstorageinmotion.init.ModEntities;
 
-import javax.annotation.Nullable;
+public class StorageMinecartItemRenderer extends MovingStorageItemRenderer<StorageMinecart> {
+	public static final Lazy<StorageMinecartItemRenderer> STORAGE_MINECART_ITEM_RENDERER = Lazy.of(() -> new StorageMinecartItemRenderer(Minecraft.getInstance().getBlockEntityRenderDispatcher(), Minecraft.getInstance().getEntityModels()));
 
-public class StorageMinecartItemRenderer implements BuiltinItemRendererRegistry.DynamicItemRenderer {
-	@Nullable
-	private static StorageMinecart MINECART = null;
-
-	@Override
-	public void render(ItemStack stack, ItemDisplayContext displayContext, PoseStack poseStack, MultiBufferSource buffer, int packedLight, int packedOverlay) {
-		Minecraft mc = Minecraft.getInstance();
-		if (mc.level == null) {
-			return;
-		}
-
-		StorageMinecart minecart = getStorageMinecart(mc);
-		minecart.getStorageHolder().setStorageItemFrom(stack, false);
-
-		poseStack.pushPose();
-		poseStack.translate(0.5, 0, 0.5);
-		mc.getEntityRenderDispatcher().render(minecart, 0, 0, 0, 0, 0, poseStack, buffer, packedLight);
-		poseStack.popPose();
+	public StorageMinecartItemRenderer(BlockEntityRenderDispatcher blockEntityRenderDispatcher, EntityModelSet entityModelSet) {
+		super(blockEntityRenderDispatcher, entityModelSet);
 	}
 
-	private static StorageMinecart getStorageMinecart(Minecraft mc) {
-		if (MINECART == null) {
-			MINECART = new StorageMinecart(ModEntities.STORAGE_MINECART.get(), mc.level);
-		}
+	@Override
+	protected void setMovingStoragePropertiesFromStack(StorageMinecart movingStorage, ItemStack stack) {
+		//noop
+	}
 
-		return MINECART;
+	/*public static IClientItemExtensions getItemRenderProperties() {
+		return new IClientItemExtensions() {
+			@Override
+			public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+				return STORAGE_MINECART_ITEM_RENDERER.get();
+			}
+		};
+	}*/
+
+	@Override
+	protected StorageMinecart instantiateMovingStorage(Minecraft mc) {
+		return new StorageMinecart(mc.level);
 	}
 }

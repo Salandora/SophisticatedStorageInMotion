@@ -1,0 +1,38 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "sophisticatedcore:item_enabled",
+      "itemRegistryName": "sophisticatedstorageinmotion:storage_boat"
+    }
+  ],
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_sophisticated_storage": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#sophisticatedstorage:all_storage"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "sophisticatedstorageinmotion:oak_storage_boat"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_sophisticated_storage"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "sophisticatedstorageinmotion:oak_storage_boat"
+    ]
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "sophisticatedcore:item_enabled",
+      "itemRegistryName": "sophisticatedstorageinmotion:storage_boat"
+    }
+  ],
+  "type": "sophisticatedstorageinmotion:moving_storage_from_storage",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "minecraft:acacia_boat"
+    },
+    {
+      "tag": "sophisticatedstorage:all_storage"
+    }
+  ],
+  "result": {
+    "components": {
+      "sophisticatedstorageinmotion:boat_type": "acacia"
+    },
+    "count": 1,
+    "id": "sophisticatedstorageinmotion:storage_boat"
+  }
+}

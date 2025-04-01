@@ -1,7 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.compat.jei;
 
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -11,6 +10,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.p3pp3rf1y.sophisticatedcore.compat.jei.ClientRecipeHelper;
+import net.p3pp3rf1y.sophisticatedcore.compat.jei.subtypes.PropertyBasedSubtypeInterpreter;
 import net.p3pp3rf1y.sophisticatedstorage.item.StorageBlockItem;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.SophisticatedStorageInMotion;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.crafting.MovingStorageTierUpgradeShapedRecipe;
@@ -19,28 +19,30 @@ import net.p3pp3rf1y.sophisticatedstorageinmotion.item.MovingStorageItem;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
+import java.util.function.Function;
 
 public class MovingStorageTierUpgradeRecipesMaker {
-	private MovingStorageTierUpgradeRecipesMaker() {}
+	private MovingStorageTierUpgradeRecipesMaker() {
+	}
 
-	public static List<RecipeHolder<CraftingRecipe>> getShapedCraftingRecipes() {
+	public static List<RecipeHolder<CraftingRecipe>> getShapedCraftingRecipes(Function<ItemStack, Optional<PropertyBasedSubtypeInterpreter>> getSubtypeInterpreter) {
 		RecipeConstructor<MovingStorageTierUpgradeShapedRecipe> constructRecipe = (originalRecipe, ingredients, result) -> {
 			ShapedRecipePattern pattern = new ShapedRecipePattern(originalRecipe.getWidth(), originalRecipe.getHeight(), ingredients, Optional.empty());
 			return new ShapedRecipe("", CraftingBookCategory.MISC, pattern, result);
 		};
-		return getCraftingRecipes(constructRecipe, MovingStorageTierUpgradeShapedRecipe.class);
+		return getCraftingRecipes(constructRecipe, MovingStorageTierUpgradeShapedRecipe.class, getSubtypeInterpreter);
 	}
 
-	public static List<RecipeHolder<CraftingRecipe>> getShapelessCraftingRecipes() {
+	public static List<RecipeHolder<CraftingRecipe>> getShapelessCraftingRecipes(Function<ItemStack, Optional<PropertyBasedSubtypeInterpreter>> getSubtypeInterpreter) {
 		RecipeConstructor<MovingStorageTierUpgradeShapelessRecipe> constructRecipe = (originalRecipe, ingredients, result) -> new ShapelessRecipe("", CraftingBookCategory.MISC, result, ingredients);
-		return getCraftingRecipes(constructRecipe, MovingStorageTierUpgradeShapelessRecipe.class);
+		return getCraftingRecipes(constructRecipe, MovingStorageTierUpgradeShapelessRecipe.class, getSubtypeInterpreter);
 	}
 
 	@NotNull
-	private static <T extends CraftingRecipe> List<RecipeHolder<CraftingRecipe>> getCraftingRecipes(RecipeConstructor<T> constructRecipe, Class<T> originalRecipeClass) {
+	private static <T extends CraftingRecipe> List<RecipeHolder<CraftingRecipe>> getCraftingRecipes(RecipeConstructor<T> constructRecipe, Class<T> originalRecipeClass, Function<ItemStack, Optional<PropertyBasedSubtypeInterpreter>> getSubtypeInterpreter) {
 		return ClientRecipeHelper.transformAllRecipesOfTypeIntoMultiple(RecipeType.CRAFTING, originalRecipeClass, recipe -> {
 			List<RecipeHolder<CraftingRecipe>> itemGroupRecipes = new ArrayList<>();
 			getStorageItems(recipe).forEach(storageItem -> {
@@ -56,28 +58,47 @@ public class MovingStorageTierUpgradeRecipesMaker {
 					}
 				}, 3, 3);
 				NonNullList<Ingredient> ingredientsCopy = NonNullList.createWithCapacity(ingredients.size());
+				List<ItemStack> baseMovingStorageItems = Collections.emptyList();
+				int movingStorageIngredientIndex = -1;
 				int i = 0;
 				for (Ingredient ingredient : ingredients) {
 					ItemStack[] ingredientItems = ingredient.getItems();
-					if (ingredientItems.length > 0 && ingredientItems[0].getItem() instanceof MovingStorageItem) {
-						ItemStack movingStorage = ingredientItems[0].copy();
-						MovingStorageItem.setStorageItem(movingStorage, storageItem);
-						ingredientsCopy.add(i, Ingredient.of(movingStorage));
-						craftinginventory.setItem(i, movingStorage.copy());
+					if (ingredientItems.length > 0 && ingredientItems[0].getItem() instanceof MovingStorageItem movingStorageItem) {
+						baseMovingStorageItems = movingStorageItem.getBaseMovingStorageItems();
+						movingStorageIngredientIndex = i;
 					} else {
-						ingredientsCopy.add(i, ingredient);
 						if (!ingredient.isEmpty()) {
 							craftinginventory.setItem(i, ingredientItems[0]);
 						}
 					}
+					ingredientsCopy.add(i, ingredient);
 					i++;
 				}
-				ItemStack result = ClientRecipeHelper.assemble(recipe, craftinginventory.asCraftInput());
-				ResourceLocation id = ResourceLocation.fromNamespaceAndPath(SophisticatedStorageInMotion.MOD_ID, "tier_upgrade_" + BuiltInRegistries.ITEM.getKey(storageItem.getItem()).getPath() + result.getComponentsPatch().toString().toLowerCase(Locale.ROOT).replaceAll("[{\",}:>=@\\[\\]\\s]", "_"));
-				itemGroupRecipes.add(new RecipeHolder<>(id, constructRecipe.construct(recipe, ingredientsCopy, result)));
+
+				for (ItemStack movingStorage : baseMovingStorageItems) {
+					itemGroupRecipes.add(createMovingStorageTierUpgradeRecipe(constructRecipe, recipe, storageItem, movingStorage, ingredientsCopy, movingStorageIngredientIndex, craftinginventory, getSubtypeInterpreter));
+				}
+
+
 			});
 			return itemGroupRecipes;
 		});
+	}
+
+	private static <T extends CraftingRecipe> RecipeHolder<CraftingRecipe> createMovingStorageTierUpgradeRecipe(RecipeConstructor<T> constructRecipe, T recipe, ItemStack storageItem, ItemStack movingStorage, NonNullList<Ingredient> ingredients, int movingStorageIngredientIndex, CraftingContainer craftinginventory, Function<ItemStack, Optional<PropertyBasedSubtypeInterpreter>> getSubtypeInterpreter) {
+		MovingStorageItem.setStorageItem(movingStorage, storageItem);
+		NonNullList<Ingredient> ingredientsCopy = NonNullList.createWithCapacity(ingredients.size());
+		ingredientsCopy.addAll(ingredients);
+		ingredientsCopy.set(movingStorageIngredientIndex, Ingredient.of(movingStorage));
+		craftinginventory.setItem(movingStorageIngredientIndex, movingStorage.copy());
+		ItemStack result = ClientRecipeHelper.assemble(recipe, craftinginventory.asCraftInput());
+		ResourceLocation id = ResourceLocation.fromNamespaceAndPath(SophisticatedStorageInMotion.MOD_ID,
+				"tier_upgrade_"
+						+ getSubtypeInterpreter.apply(storageItem).map(interpreter -> interpreter.getRegistrySanitizedItemString(storageItem)).orElse("")
+						+ "_to_"
+						+ getSubtypeInterpreter.apply(result).map(interpreter -> interpreter.getRegistrySanitizedItemString(result)).orElse("")
+		);
+		return new RecipeHolder<>(id, constructRecipe.construct(recipe, ingredientsCopy, result));
 	}
 
 	private static List<ItemStack> getStorageItems(CraftingRecipe recipe) {
@@ -86,7 +107,7 @@ public class MovingStorageTierUpgradeRecipesMaker {
 			ItemStack[] ingredientItems = ingredient.getItems();
 			for (ItemStack ingredientItem : ingredientItems) {
 				Item item = ingredientItem.getItem();
-				if (item instanceof MovingStorageItem && MovingStorageItem.getStorageItem(ingredientItem).getItem() instanceof StorageBlockItem storageBlockItem) {
+				if (item instanceof MovingStorageItem && MovingStorageItem.getStorageItem(ingredientItem).getItem() instanceof StorageBlockItem) {
 					storageItems.add(MovingStorageItem.getStorageItem(ingredientItem));
 				}
 			}

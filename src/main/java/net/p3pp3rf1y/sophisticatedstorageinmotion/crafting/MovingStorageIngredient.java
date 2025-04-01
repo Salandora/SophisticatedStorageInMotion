@@ -50,7 +50,7 @@ public class MovingStorageIngredient implements CustomIngredient {
 
 	@Override
 	public boolean test(ItemStack itemStack) {
-		return itemStack.getItem() instanceof MovingStorageItem && MovingStorageItem.getStorageItem(itemStack).getItem() == storageItem.value();
+		return itemStack.getItem() == movingStorageItem.value() && MovingStorageItem.getStorageItem(itemStack).getItem() == storageItem.value();
 	}
 
 	@Override

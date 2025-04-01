@@ -1,0 +1,38 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "sophisticatedcore:item_enabled",
+      "itemRegistryName": "sophisticatedstorageinmotion:storage_boat"
+    }
+  ],
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_copper_chest": {
+      "conditions": {
+        "items": [
+          {
+            "items": "sophisticatedstorage:copper_chest"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "sophisticatedstorageinmotion:storage_boat_with_copper_chest_to_iron_chest"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_copper_chest"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "sophisticatedstorageinmotion:storage_boat_with_copper_chest_to_iron_chest"
+    ]
+  }
+}

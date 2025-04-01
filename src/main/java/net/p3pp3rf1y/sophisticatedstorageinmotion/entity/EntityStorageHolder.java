@@ -1,17 +1,20 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.entity;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.piglin.PiglinAi;
@@ -35,21 +38,29 @@ import net.p3pp3rf1y.sophisticatedcore.settings.itemdisplay.ItemDisplaySettingsC
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ITickableUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
+import net.p3pp3rf1y.sophisticatedcore.util.ItemBase;
 import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.util.SimpleItemContent;
+import net.p3pp3rf1y.sophisticatedstorage.Config;
 import net.p3pp3rf1y.sophisticatedstorage.block.*;
+import net.p3pp3rf1y.sophisticatedstorage.client.gui.StorageTranslationHelper;
 import net.p3pp3rf1y.sophisticatedstorage.init.ModBlocks;
+import net.p3pp3rf1y.sophisticatedstorage.init.ModItems;
 import net.p3pp3rf1y.sophisticatedstorage.item.*;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.common.gui.MovingLimitedBarrelContainerMenu;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.common.gui.MovingStorageContainerMenu;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.init.ModDataComponents;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
 
-public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implements ILockable, ICountDisplay, ITierDisplay, IUpgradeDisplay, IFillLevelDisplay {
+public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implements ILockable, ICountDisplay, ITierDisplay, IUpgradeDisplay, IFillLevelDisplay, IMaterialHolder {
+	private static final int AVERAGE_DROPPED_ITEM_ENTITY_STACK_SIZE = 20;
 	private final T entity;
 
 	@Nullable
@@ -271,7 +282,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 	}
 
 	private void runPickupOnItemEntities() {
-		AABB aabb = entity.getBoundingBox();
+		AABB aabb = entity.getBoundingBox().inflate(0.2D);
 		List<ItemEntity> collidedWithItemEntities = entity.level().getEntitiesOfClass(ItemEntity.class, aabb);
 		collidedWithItemEntities.forEach(itemEntity -> {
 			if (itemEntity.isAlive()) {
@@ -344,8 +355,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 				renderBlockEntity.toggleUpgradesVisiblity();
 			}
 			if (storageItem.getItem() instanceof ITintableBlockItem tintableBlockItem) {
-				renderBlockEntity.getStorageWrapper().setMainColor(tintableBlockItem.getMainColor(storageItem).orElse(-1));
-				renderBlockEntity.getStorageWrapper().setAccentColor(tintableBlockItem.getAccentColor(storageItem).orElse(-1));
+				renderBlockEntity.getStorageWrapper().setColors(tintableBlockItem.getMainColor(storageItem).orElse(-1), tintableBlockItem.getAccentColor(storageItem).orElse(-1));
 			}
 			if (renderBlockEntity instanceof WoodStorageBlockEntity woodStorage) {
 				WoodStorageBlockItem.getWoodType(storageItem).ifPresent(woodType -> {
@@ -353,7 +363,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 						woodStorage.setWoodType(woodType);
 					}
 				});
-				boolean isPacked = WoodStorageBlockItem.isPacked(storageItem);
+				boolean isPacked = EntityStorageHolder.isPacked(storageItem);
 				if (woodStorage.isPacked() != isPacked) {
 					woodStorage.setPacked(isPacked);
 				}
@@ -389,9 +399,16 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 					}
 				}
 			}
+			if (renderBlockEntity instanceof ChestBlockEntity chestBlockEntity) {
+				chestBlockEntity.showUpgradesOnTop = true;
+			}
 		}
 
 		return renderBlockEntity;
+	}
+
+	private static boolean isPacked(ItemStack storageItem) {
+		return WoodStorageBlockItem.isPacked(storageItem);
 	}
 
 	public void onStorageItemSynced() {
@@ -403,6 +420,10 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 	}
 
 	public InteractionResult openContainerMenu(Player player) {
+		if (isPacked(entity.getStorageItem())) {
+			return InteractionResult.PASS;
+		}
+
 		player.sophisticatedCore_openMenu(new SophisticatedMenuProvider((w, p, pl) -> createMenu(w, pl), entity.getName(), false), buffer -> buffer.writeInt(entity.getId()));
 		return player.level().isClientSide ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
 	}
@@ -421,15 +442,23 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 
 	public void onDestroy() {
 		if (entity.level().getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
-			ItemStack drop = new ItemStack(entity.getDropItem());
-			drop.sophisticatedCore_set(ModDataComponents.STORAGE_ITEM, SimpleItemContent.copyOf(entity.getStorageItem()));
+			if (Config.COMMON.dropPacked.get()) {
+				pack();
+			}
+			ItemStack storageItem = entity.getStorageItem();
+			if (!isShulkerBox(storageItem) && !isPacked(storageItem)) {
+				dropAllItems();
+				if (storageItem.has(ModCoreDataComponents.STORAGE_UUID)) {
+					MovingStorageData.get(storageItem.get(ModCoreDataComponents.STORAGE_UUID)).removeStorageContents();
+					storageItem.remove(ModCoreDataComponents.STORAGE_UUID);
+				}
+			}
+			ItemStack drop = entity.getDropStack();
+			drop.sophisticatedCore_set(ModDataComponents.STORAGE_ITEM, SimpleItemContent.copyOf(storageItem));
 			if (entity.hasCustomName()) {
 				drop.set(DataComponents.CUSTOM_NAME, entity.getCustomName());
 			}
 			entity.spawnAtLocation(drop);
-			if (!(entity.getStorageItem().getItem() instanceof ShulkerBoxItem)) {
-				dropAllItems();
-			}
 		}
 	}
 
@@ -542,5 +571,89 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 
 	public boolean isOpen() {
 		return openersCounter.getOpenerCount() > 0;
+	}
+
+	public boolean pack() {
+		if (isShulkerBox(entity.getStorageItem()) || isPacked(entity.getStorageItem())) {
+			return false;
+		}
+
+		ItemStack storageItem = entity.getStorageItem();
+		WoodStorageBlockItem.setPacked(storageItem, true);
+		setStorageItem(storageItem);
+
+		return true;
+	}
+
+	public void onPlace() {
+		if (isPacked(entity.getStorageItem())) {
+			ItemStack storageItem = entity.getStorageItem();
+			WoodStorageBlockItem.setPacked(storageItem, false);
+			setStorageItem(storageItem);
+		}
+	}
+
+	private boolean canBeHurtByWithFeedback(DamageSource source) {
+		if (Config.COMMON.dropPacked.get() || isPacked() || !(source.getEntity() instanceof Player player)) {
+			return true;
+		}
+
+		if (player.isCrouching() || isShulkerBox(entity.getStorageItem())) {
+			return true;
+		}
+
+		AtomicInteger droppedItemEntityCount = new AtomicInteger(0);
+		InventoryHelper.iterate(getStorageWrapper().getInventoryHandler(), (slot, stack) -> {
+			if (stack.isEmpty()) {
+				return;
+			}
+			droppedItemEntityCount.addAndGet((int) Math.ceil(stack.getCount() / (double) Math.min(stack.getMaxStackSize(), AVERAGE_DROPPED_ITEM_ENTITY_STACK_SIZE)));
+		});
+
+		if (droppedItemEntityCount.get() <= Config.SERVER.tooManyItemEntityDrops.get()) {
+			return true;
+		}
+
+		ItemBase packingTapeItem = ModItems.PACKING_TAPE.get();
+		Component packingTapeItemName = packingTapeItem.getName(new ItemStack(packingTapeItem)).copy().withStyle(ChatFormatting.GREEN);
+		player.sendSystemMessage(StorageTranslationHelper.INSTANCE.translStatusMessage("too_many_item_entity_drops",
+				entity.getName().copy().withStyle(ChatFormatting.GREEN),
+				Component.literal(String.valueOf(droppedItemEntityCount.get())).withStyle(ChatFormatting.RED),
+				packingTapeItemName)
+		);
+		return false;
+	}
+
+	public boolean isPacked() {
+		return isPacked(entity.getStorageItem());
+	}
+
+	@Override
+	public void setMaterials(Map<BarrelMaterial, ResourceLocation> materials) {
+		ItemStack storageItem = entity.getStorageItem();
+		if (isBarrel(storageItem)) {
+			BarrelBlockItem.setMaterials(storageItem, materials);
+			setStorageItem(storageItem);
+		}
+	}
+
+	@Override
+	public Map<BarrelMaterial, ResourceLocation> getMaterials() {
+		return isBarrel(entity.getStorageItem()) ? BarrelBlockItem.getMaterials(entity.getStorageItem()) : Collections.emptyMap();
+	}
+
+	@Override
+	public boolean canHoldMaterials() {
+		return isBarrel(entity.getStorageItem());
+	}
+
+	public boolean hurt(DamageSource source, float amount, BiFunction<DamageSource, Float, Boolean> superHurt) {
+		if (canBeHurtByWithFeedback(source) && superHurt.apply(source, amount)) {
+			if (source.getEntity() instanceof Player player && player.getAbilities().instabuild && entity.isRemoved()) {
+				dropAllItems();
+			}
+			return true;
+		}
+		return false;
 	}
 }
