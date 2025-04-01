@@ -35,7 +35,7 @@ public class TierUpgradeHandler {
 	private static final Map<StorageTierUpgradeItem.TierUpgrade, Map<Item, IEntityTierUpgradeDefinition>> ENTITY_TIER_UPGRADE_DEFINITIONS = new HashMap<>();
 
 	public static InteractionResult onTierUpgradeInteract(Player player, Level world, InteractionHand hand, Entity entity, @Nullable EntityHitResult hitResult) {
-		ItemStack itemInHand = player.getItemInHand(event.getHand());
+		ItemStack itemInHand = player.getItemInHand(hand);
 		if (!(itemInHand.getItem() instanceof StorageTierUpgradeItem tierUpgradeItem)) {
 			return InteractionResult.PASS;
 		}

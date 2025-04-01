@@ -8,6 +8,7 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.vehicle.Boat;
 import net.p3pp3rf1y.sophisticatedstorage.block.BarrelBlockEntity;
 import net.p3pp3rf1y.sophisticatedstorage.block.ShulkerBoxBlockEntity;
 import net.p3pp3rf1y.sophisticatedstorage.block.StorageBlockEntity;
@@ -23,7 +24,7 @@ public class StorageBoatRenderer extends EntityRenderer<StorageBoat> {
 
 	@Override
 	public ResourceLocation getTextureLocation(StorageBoat storageBoat) {
-		return boatRenderer.getModelWithLocation(storageBoat).getFirst();
+		return boatRenderer.getTextureLocation(storageBoat);
 	}
 
 	@Override
@@ -31,7 +32,7 @@ public class StorageBoatRenderer extends EntityRenderer<StorageBoat> {
 		super.render(storageBoat, entityYaw, partialTicks, poseStack, buffer, packedLight);
 
 		poseStack.pushPose();
-		poseStack.translate(0,  storageBoat.getVariant().isRaft() ? 8/16F : 3/16F, 0);
+		poseStack.translate(0, /*storageBoat.getVariant().isRaft()*/ storageBoat.getVariant() == Boat.Type.BAMBOO ? 8/16F : 3/16F, 0);
 		poseStack.mulPose(Axis.YP.rotationDegrees(180.0F - entityYaw));
 		float interpolatedHurtTime = (float)storageBoat.getHurtTime() - partialTicks;
 		float interpolatedDamage = storageBoat.getDamage() - partialTicks;

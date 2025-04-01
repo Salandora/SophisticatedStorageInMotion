@@ -163,7 +163,7 @@ public class StorageMinecart extends MinecartChest implements IMovingStorageEnti
 
 	@Override
 	public int getContainerSize() {
-		return getStorageHolder().getStorageWrapper().getInventoryForInputOutput().getSlots();
+		return getStorageHolder().getStorageWrapper().getInventoryForInputOutput().getSlotCount();
 	}
 
 	@Override

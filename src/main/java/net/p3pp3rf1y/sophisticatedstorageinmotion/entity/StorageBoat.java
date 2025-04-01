@@ -105,8 +105,8 @@ public class StorageBoat extends ChestBoat implements IMovingStorageEntity {
 	public ItemStack getPickResult() {
 		ItemStack result = getDropStack();
 		ItemStack storageItemCopy = getStorageItem().copy();
-		storageItemCopy.remove(ModCoreDataComponents.STORAGE_UUID);
-		result.set(ModDataComponents.STORAGE_ITEM, SimpleItemContent.copyOf(storageItemCopy));
+		storageItemCopy.sophisticatedCore_remove(ModCoreDataComponents.STORAGE_UUID);
+		result.sophisticatedCore_set(ModDataComponents.STORAGE_ITEM, SimpleItemContent.copyOf(storageItemCopy));
 		return result;
 	}
 
@@ -143,7 +143,7 @@ public class StorageBoat extends ChestBoat implements IMovingStorageEntity {
 
 	@Override
 	public Component getCustomName() {
-		String boatDescId = getVariant().isRaft() ? "storage_raft" : "storage_boat";
+		String boatDescId = /*getVariant().isRaft()*/ getVariant() == Type.BAMBOO ? "storage_raft" : "storage_boat";
 		return entityData.get(DATA_CUSTOM_NAME).orElseGet(() -> Component.translatable(StorageInMotionTranslationHelper.INSTANCE.translEntity(boatDescId), getWoodName(getVariant()), getStorageItem().getHoverName()));
 	}
 
@@ -153,7 +153,7 @@ public class StorageBoat extends ChestBoat implements IMovingStorageEntity {
 
 	@Override
 	protected Component getTypeName() {
-		if (getVariant().isRaft()) {
+		if (/*getVariant().isRaft()*/ getVariant() == Type.BAMBOO) {
 			return Component.translatable("entity." + SophisticatedStorageInMotion.MOD_ID + ".storage_raft");
 		}
 
@@ -197,7 +197,7 @@ public class StorageBoat extends ChestBoat implements IMovingStorageEntity {
 
 	@Override
 	public int getContainerSize() {
-		return getStorageHolder().getStorageWrapper().getInventoryForInputOutput().getSlots();
+		return getStorageHolder().getStorageWrapper().getInventoryForInputOutput().getSlotCount();
 	}
 
 	@Override
@@ -233,7 +233,7 @@ public class StorageBoat extends ChestBoat implements IMovingStorageEntity {
 	public void clearChestVehicleContent() {
 		unpackChestVehicleLootTable(null);
 		InventoryHandler inventoryHandler = getStorageHolder().getStorageWrapper().getInventoryHandler();
-		for (int slot = 0; slot < inventoryHandler.getSlots(); slot++) {
+		for (int slot = 0; slot < inventoryHandler.getSlotCount(); slot++) {
 			inventoryHandler.setStackInSlot(slot, ItemStack.EMPTY);
 		}
 	}

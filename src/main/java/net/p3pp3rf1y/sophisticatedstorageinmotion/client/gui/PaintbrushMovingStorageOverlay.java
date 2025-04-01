@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.client.gui;
 
+import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.LayeredDraw;
@@ -62,7 +63,7 @@ public class PaintbrushMovingStorageOverlay {
 		}
 	}
 
-	public static final LayeredDraw.Layer HUD_PAINTBRUSH_INFO = (guiGraphics, deltaTracker) -> {
+	public static final HudRenderCallback HUD_PAINTBRUSH_INFO = (guiGraphics, deltaTracker) -> {
 		Minecraft mc = Minecraft.getInstance();
 		if (mc.screen != null) {
 			if (!mc.screen.isPauseScreen()) {

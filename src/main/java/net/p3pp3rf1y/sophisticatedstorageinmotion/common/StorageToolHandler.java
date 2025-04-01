@@ -21,7 +21,7 @@ public class StorageToolHandler {
 	}
 
 	public static InteractionResult onStorageToolInteract(Player player, Level world, InteractionHand hand, Entity entity, @Nullable EntityHitResult hitResult) {
-		ItemStack itemInHand = player.getItemInHand(hand,);
+		ItemStack itemInHand = player.getItemInHand(hand);
 		if (!(entity instanceof IMovingStorageEntity movingStorageEntity) || itemInHand.getItem() != ModItems.STORAGE_TOOL.get() || movingStorageEntity.getStorageHolder().isPacked()) {
 			return InteractionResult.PASS;
 		}
@@ -31,6 +31,8 @@ public class StorageToolHandler {
 		if (result.consumesAction()) {
 			return result;
 		}
+
+		return result;
 	}
 
 	private static InteractionResult tryStorageToolInteract(IMovingStorageEntity movingStorageEntity, ItemStack storageTool) {

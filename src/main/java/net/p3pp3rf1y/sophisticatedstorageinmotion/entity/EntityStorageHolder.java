@@ -448,9 +448,9 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 			ItemStack storageItem = entity.getStorageItem();
 			if (!isShulkerBox(storageItem) && !isPacked(storageItem)) {
 				dropAllItems();
-				if (storageItem.has(ModCoreDataComponents.STORAGE_UUID)) {
-					MovingStorageData.get(storageItem.get(ModCoreDataComponents.STORAGE_UUID)).removeStorageContents();
-					storageItem.remove(ModCoreDataComponents.STORAGE_UUID);
+				if (storageItem.sophisticatedCore_has(ModCoreDataComponents.STORAGE_UUID)) {
+					MovingStorageData.get(storageItem.sophisticatedCore_get(ModCoreDataComponents.STORAGE_UUID)).removeStorageContents();
+					storageItem.sophisticatedCore_remove(ModCoreDataComponents.STORAGE_UUID);
 				}
 			}
 			ItemStack drop = entity.getDropStack();

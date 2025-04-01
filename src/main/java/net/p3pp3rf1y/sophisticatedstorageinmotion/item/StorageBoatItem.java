@@ -7,6 +7,7 @@ import net.minecraft.core.dispenser.DefaultDispenseItemBehavior;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.stats.Stats;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
@@ -69,10 +70,12 @@ public class StorageBoatItem extends MovingStorageItem {
 			Boat boat = createBoat(level, null, stack, x, y, z);
 			boat.setYRot(direction.toYRot());
 			double yOffset;
-			if (boat.canBoatInFluid(level.getFluidState(blockpos))) {
+			//if (boat.canBoatInFluid(level.getFluidState(blockpos))) {
+			if (level.getFluidState(blockpos).is(FluidTags.WATER)) {
 				yOffset = 1;
 			} else {
-				if (!level.getBlockState(blockpos).isAir() || !boat.canBoatInFluid(level.getFluidState(blockpos.below()))) {
+				//if (!level.getBlockState(blockpos).isAir() || !boat.canBoatInFluid(level.getFluidState(blockpos.below()))) {
+				if (!level.getBlockState(blockpos).isAir() || !level.getFluidState(blockpos.below()).is(FluidTags.WATER)) {
 					return this.defaultDispenseItemBehavior.dispense(source, stack);
 				}
 
@@ -115,9 +118,9 @@ public class StorageBoatItem extends MovingStorageItem {
 
 	@Override
 	public Component getName(ItemStack stack) {
-		SimpleItemContent storageItemContent = stack.get(ModDataComponents.STORAGE_ITEM);
+		SimpleItemContent storageItemContent = stack.sophisticatedCore_get(ModDataComponents.STORAGE_ITEM);
 		Boat.Type boatType = getBoatType(stack);
-		String descriptionId = boatType.isRaft() ? RAFT_DESCRIPTION_ID : getDescriptionId();
+		String descriptionId = /*boatType.isRaft()*/ boatType == Boat.Type.BAMBOO ? RAFT_DESCRIPTION_ID : getDescriptionId();
 		return Component.translatable(descriptionId, getWoodName(boatType), storageItemContent != null ? storageItemContent.copy().getHoverName() : "");
 	}
 

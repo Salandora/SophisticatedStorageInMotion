@@ -151,8 +151,9 @@ public class StorageInMotionRecipeProvider extends FabricRecipeProvider {
 
 	private static void addMovingStorageTierUpgradeRecipe(RecipeOutput recipeOutput, DeferredHolder<Item, ?> movingStorageItem, Item storageItem, Item upgradedStorageItem, TagKey<Item> material, UnaryOperator<SCShapedRecipeBuilder> patternInit) {
 		String storageItemPath = BuiltInRegistries.ITEM.getKey(storageItem).getPath();
+		Holder<Item> movingStorageItemHolder = BuiltInRegistries.ITEM.getHolder(movingStorageItem.getKey()).orElseThrow();
 		patternInit.apply(ShapeBasedRecipeBuilder.shaped(MovingStorageItem.createWithStorage(new ItemStack(movingStorageItem.value()), new ItemStack(upgradedStorageItem)), MovingStorageTierUpgradeShapedRecipe::new))
-				.define('S', MovingStorageIngredient.of(movingStorageItem, storageItem).toVanilla())
+				.define('S', MovingStorageIngredient.of(movingStorageItemHolder, storageItem).toVanilla())
 				.define('M', material)
 				.unlockedBy("has_" + storageItemPath, has(storageItem))
 				.save(recipeOutput, SophisticatedStorageInMotion.getRegistryName(movingStorageItem.getKey().location().getPath() + "_with_" + storageItemPath + "_to_" + BuiltInRegistries.ITEM.getKey(upgradedStorageItem).getPath()));
@@ -160,8 +161,9 @@ public class StorageInMotionRecipeProvider extends FabricRecipeProvider {
 
 	private static void addMovingStorageDiamondToNetheriteTierUpgradeRecipe(RecipeOutput recipeOutput, DeferredHolder<Item, ?> movingStorageItem, Item storageItem, Item upgradedStorageItem) {
 		String storageItemPath = BuiltInRegistries.ITEM.getKey(storageItem).getPath();
+		Holder<Item> movingStorageItemHolder = BuiltInRegistries.ITEM.getHolder(movingStorageItem.getKey()).orElseThrow();
 		ShapelessBasedRecipeBuilder.shapeless(MovingStorageItem.createWithStorage(new ItemStack(movingStorageItem.value()), new ItemStack(upgradedStorageItem)), MovingStorageTierUpgradeShapelessRecipe::new)
-				.requires(MovingStorageIngredient.of(movingStorageItem, storageItem).toVanilla())
+				.requires(MovingStorageIngredient.of(movingStorageItemHolder, storageItem).toVanilla())
 				.requires(ConventionalItemTags.NETHERITE_INGOTS)
 				.unlockedBy("has_" + storageItemPath, has(storageItem))
 				.save(recipeOutput, SophisticatedStorageInMotion.getRegistryName(movingStorageItem.getKey().location().getPath() + "_with_" + storageItemPath + "_to_" + BuiltInRegistries.ITEM.getKey(upgradedStorageItem).getPath()));

@@ -3,9 +3,8 @@ package net.p3pp3rf1y.sophisticatedstorageinmotion.client;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.event.level.LevelEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.p3pp3rf1y.sophisticatedcore.client.render.ClientStorageContentsTooltipBase;
+import net.p3pp3rf1y.sophisticatedcore.network.PacketDistributor;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.item.MovingStorageItem;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.network.RequestMovingStorageInventoryContentsPayload;
 
@@ -16,7 +15,7 @@ public class ClientMovingStorageContentsTooltip extends ClientStorageContentsToo
 
 	@SuppressWarnings("unused")
 	//parameter needs to be there so that addListener logic would know which event this method listens to
-	public static void onWorldLoad(LevelEvent.Load event) {
+	public static void onWorldLoad() {
 		refreshContents();
 		lastRequestTime = 0;
 	}

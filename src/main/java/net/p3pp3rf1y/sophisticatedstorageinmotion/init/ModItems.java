@@ -49,7 +49,6 @@ public class ModItems {
 					.build());
 
 	public static void registerHandlers() {
-
 		ITEMS.register();
 		CREATIVE_MODE_TABS.register();
 		// ATTACHMENT_TYPES.register();

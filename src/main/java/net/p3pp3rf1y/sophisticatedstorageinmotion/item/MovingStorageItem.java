@@ -1,5 +1,7 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.item;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
@@ -16,7 +18,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.block.state.properties.WoodType;
-import net.neoforged.fml.loading.FMLEnvironment;
 import net.p3pp3rf1y.sophisticatedcore.Config;
 import net.p3pp3rf1y.sophisticatedcore.api.IStashStorageItem;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
@@ -140,7 +141,7 @@ public abstract class MovingStorageItem extends ItemBase implements IStashStorag
 
 	@Override
 	public Optional<TooltipComponent> getTooltipImage(ItemStack stack) {
-		if (FMLEnvironment.dist.isClient()) {
+		if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
 			return Optional.ofNullable(MovingStorageItemClient.getTooltipImage(stack));
 		}
 		return Optional.empty();
@@ -172,7 +173,7 @@ public abstract class MovingStorageItem extends ItemBase implements IStashStorag
 	public static MovingStorageWrapper getMovingStorageWrapper(ItemStack movingStorageStack) {
 		ItemStack storageItem = getStorageItem(movingStorageStack);
 		MovingStorageWrapper wrapper = MovingStorageWrapper.fromStack(storageItem, () -> {},
-				() -> movingStorageStack.set(ModDataComponents.STORAGE_ITEM, SimpleItemContent.copyOf(storageItem)));
+				() -> movingStorageStack.sophisticatedCore_set(ModDataComponents.STORAGE_ITEM, SimpleItemContent.copyOf(storageItem)));
 		return wrapper;
 	}
 
