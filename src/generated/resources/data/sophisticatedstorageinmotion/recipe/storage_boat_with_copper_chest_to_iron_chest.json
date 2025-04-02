@@ -1,7 +1,7 @@
 {
-  "neoforge:conditions": [
+  "fabric:load_conditions": [
     {
-      "type": "sophisticatedcore:item_enabled",
+      "condition": "sophisticatedcore:item_enabled",
       "itemRegistryName": "sophisticatedstorageinmotion:storage_boat"
     }
   ],
@@ -12,7 +12,7 @@
       "tag": "c:ingots/iron"
     },
     "S": {
-      "type": "sophisticatedstorageinmotion:moving_storage",
+      "fabric:type": "sophisticatedstorageinmotion:moving_storage",
       "moving_storage_item": "sophisticatedstorageinmotion:storage_boat",
       "storage_item": "sophisticatedstorage:copper_chest"
     }
