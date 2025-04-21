@@ -1,0 +1,49 @@
+package net.p3pp3rf1y.sophisticatedstorageinmotion.client;
+
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.geom.EntityModelSet;
+import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
+import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.IMovingStorageEntity;
+
+import javax.annotation.Nullable;
+
+public abstract class MovingStorageItemRenderer<T extends Entity & IMovingStorageEntity> implements BuiltinItemRendererRegistry.DynamicItemRenderer {
+	@Nullable
+	private T movingStorage = null;
+
+	@Override
+	public void render(ItemStack stack, ItemDisplayContext mode, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay) {
+		Minecraft mc = Minecraft.getInstance();
+		if (mc.level == null) {
+			return;
+		}
+
+		T movingStorage = getMovingStorage(mc);
+		setMovingStoragePropertiesFromStack(movingStorage, stack);
+		movingStorage.getStorageHolder().setStorageItemFrom(stack, false);
+
+		matrices.pushPose();
+		matrices.translate(0.5, 0, 0.5);
+		mc.getEntityRenderDispatcher().render(movingStorage, 0, 0, 0, 0, 0, matrices, vertexConsumers, light);
+		matrices.popPose();
+	}
+
+	protected abstract void setMovingStoragePropertiesFromStack(T movingStorage, ItemStack stack);
+
+	private T getMovingStorage(Minecraft mc) {
+		if (movingStorage == null) {
+			movingStorage = instantiateMovingStorage(mc);
+		}
+
+		return movingStorage;
+	}
+
+	protected abstract T instantiateMovingStorage(Minecraft mc);
+}

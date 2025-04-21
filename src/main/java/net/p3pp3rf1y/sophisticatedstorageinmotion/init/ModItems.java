@@ -16,6 +16,7 @@ import net.minecraft.world.level.block.DispenserBlock;
 import net.p3pp3rf1y.sophisticatedcore.util.ItemBase;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.SophisticatedStorageInMotion;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.crafting.*;
+import net.p3pp3rf1y.sophisticatedstorageinmotion.item.StorageBoatItem;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.item.StorageMinecartItem;
 
 import java.util.function.Supplier;
@@ -28,6 +29,8 @@ public class ModItems {
 	public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB.location(), SophisticatedStorageInMotion.MOD_ID);
 
 	public static final DeferredHolder<Item, StorageMinecartItem> STORAGE_MINECART = ITEMS.register("storage_minecart", StorageMinecartItem::new);
+
+	public static final DeferredHolder<Item, StorageBoatItem> STORAGE_BOAT = ITEMS.register("storage_boat", StorageBoatItem::new);
 
 	// private static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES = DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, SophisticatedStorageInMotion.MOD_ID);
 
@@ -46,7 +49,6 @@ public class ModItems {
 					.build());
 
 	public static void registerHandlers() {
-
 		ITEMS.register();
 		CREATIVE_MODE_TABS.register();
 		// ATTACHMENT_TYPES.register();
@@ -56,5 +58,6 @@ public class ModItems {
 
 	public static void registerDispenseBehavior() {
 		DispenserBlock.registerBehavior(STORAGE_MINECART.get(), StorageMinecartItem.DISPENSE_ITEM_BEHAVIOR);
+		DispenserBlock.registerBehavior(STORAGE_BOAT.get(), StorageBoatItem.DISPENSE_ITEM_BEHAVIOR);
 	}
 }

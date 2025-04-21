@@ -12,25 +12,40 @@ import mezz.jei.api.registration.IRecipeTransferRegistration;
 import mezz.jei.api.registration.ISubtypeRegistration;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.SettingsScreen;
 import net.p3pp3rf1y.sophisticatedcore.compat.jei.CraftingContainerRecipeTransferHandlerBase;
 import net.p3pp3rf1y.sophisticatedcore.compat.jei.SettingsGhostIngredientHandler;
 import net.p3pp3rf1y.sophisticatedcore.compat.jei.StorageGhostIngredientHandler;
+import net.p3pp3rf1y.sophisticatedcore.compat.jei.subtypes.PropertyBasedSubtypeInterpreter;
 import net.p3pp3rf1y.sophisticatedstorage.client.gui.StorageScreen;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.SophisticatedStorageInMotion;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.client.gui.MovingStorageScreen;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.client.gui.MovingStorageSettingsScreen;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.common.gui.MovingStorageContainerMenu;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.init.ModItems;
+import net.p3pp3rf1y.sophisticatedstorageinmotion.item.StorageBoatItem;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @SuppressWarnings("unused")
 @JeiPlugin
 public class StorageInMotionPlugin implements IModPlugin {
+
+	private Map<Item, PropertyBasedSubtypeInterpreter> getSubtypeInterpreters() {
+		return new HashMap<>() {{
+			put(ModItems.STORAGE_MINECART.get(), new MovingStorageSubtypeInterpreter());
+			put(ModItems.STORAGE_BOAT.get(), new StorageBoatSubtypeInterpreter());
+		}};
+	}
+
+	private Optional<PropertyBasedSubtypeInterpreter> getSubtypeInterpreter(Map<Item, PropertyBasedSubtypeInterpreter> subtypeInterpreters, ItemStack stack) {
+		return Optional.ofNullable(subtypeInterpreters.get(stack.getItem()));
+	}
+
 	@Override
 	public ResourceLocation getPluginUid() {
 		return ResourceLocation.fromNamespaceAndPath(SophisticatedStorageInMotion.MOD_ID, "default");
@@ -38,7 +53,14 @@ public class StorageInMotionPlugin implements IModPlugin {
 
 	@Override
 	public void registerItemSubtypes(ISubtypeRegistration registration) {
-		registration.registerSubtypeInterpreter(ModItems.STORAGE_MINECART.get(), new MovingStorageSubtypeInterpreter());
+		getSubtypeInterpreters().forEach(registration::registerSubtypeInterpreter);
+	}
+
+	private static class StorageBoatSubtypeInterpreter extends MovingStorageSubtypeInterpreter {
+		public StorageBoatSubtypeInterpreter() {
+			super();
+			addOptionalProperty(boatStack -> Optional.of(StorageBoatItem.getBoatType(boatStack)), "boatType", boatType -> boatType.name().toLowerCase(Locale.ROOT));
+		}
 	}
 
 	@Override
@@ -67,9 +89,10 @@ public class StorageInMotionPlugin implements IModPlugin {
 
 	@Override
 	public void registerRecipes(IRecipeRegistration registration) {
-		registration.addRecipes(RecipeTypes.CRAFTING, AssembleRecipesMaker.getShapelessCraftingRecipes(ModItems.STORAGE_MINECART.get()));
-		registration.addRecipes(RecipeTypes.CRAFTING, MovingStorageTierUpgradeRecipesMaker.getShapedCraftingRecipes());
-		registration.addRecipes(RecipeTypes.CRAFTING, MovingStorageTierUpgradeRecipesMaker.getShapelessCraftingRecipes());
+		Map<Item, PropertyBasedSubtypeInterpreter> subtypeInterpreters = getSubtypeInterpreters();
+		registration.addRecipes(RecipeTypes.CRAFTING, AssembleRecipesMaker.getShapelessCraftingRecipes(stack -> getSubtypeInterpreter(subtypeInterpreters, stack)));
+		registration.addRecipes(RecipeTypes.CRAFTING, MovingStorageTierUpgradeRecipesMaker.getShapedCraftingRecipes(stack -> getSubtypeInterpreter(subtypeInterpreters, stack)));
+		registration.addRecipes(RecipeTypes.CRAFTING, MovingStorageTierUpgradeRecipesMaker.getShapelessCraftingRecipes(stack -> getSubtypeInterpreter(subtypeInterpreters, stack)));
 	}
 
 	@Override

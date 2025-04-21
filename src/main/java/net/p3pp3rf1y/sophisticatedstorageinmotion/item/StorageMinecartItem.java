@@ -19,6 +19,7 @@ import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.RailShape;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.EntityStorageHolder;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.StorageMinecart;
 import org.jetbrains.annotations.Nullable;
 
@@ -96,13 +97,15 @@ public class StorageMinecartItem extends MovingStorageItem {
 
 	private static StorageMinecart createMinecart(ServerLevel serverlevel, BlockPos blockpos, double ascendingOffset, ItemStack stack, @Nullable Player player) {
 		StorageMinecart minecart = new StorageMinecart(serverlevel, blockpos.getX() + 0.5, blockpos.getY() + 0.0625 + ascendingOffset, blockpos.getZ() + 0.5);
-		minecart.getStorageHolder().setStorageItemFrom(stack, true);
+		EntityStorageHolder<?> storageHolder = minecart.getStorageHolder();
+		storageHolder.setStorageItemFrom(stack, true);
+		storageHolder.onPlace();
 		EntityType.createDefaultStackConfig(serverlevel, stack, player).accept(minecart);
 		return minecart;
 	}
 
 	@Override
-	public ItemStack getUncraftRemainingItem() {
+	public ItemStack getUncraftRemainingItem(ItemStack input) {
 		return new ItemStack(Items.MINECART);
 	}
 }

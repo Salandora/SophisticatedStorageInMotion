@@ -22,7 +22,6 @@ import net.p3pp3rf1y.sophisticatedstorage.client.gui.StorageTranslationHelper;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.IMovingStorageEntity;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.MovingStorageData;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.MovingStorageWrapper;
-import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.StorageMinecart;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.init.ModEntities;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.network.MovingStorageContentsPayload;
 
@@ -61,11 +60,11 @@ public class MovingStorageContainerMenu<T extends Entity & IMovingStorageEntity>
 	}
 
 	private static IStorageWrapper getWrapper(Level level, int entityId) {
-		if (!(level.getEntity(entityId) instanceof StorageMinecart storageMinecart)) {
+		if (!(level.getEntity(entityId) instanceof IMovingStorageEntity movingStorage)) {
 			return NoopStorageWrapper.INSTANCE;
 		}
 
-		return storageMinecart.getStorageHolder().getStorageWrapper();
+		return movingStorage.getStorageHolder().getStorageWrapper();
 	}
 
 	public static MovingStorageContainerMenu<?> fromBuffer(int windowId, Inventory playerInventory, FriendlyByteBuf buffer) {

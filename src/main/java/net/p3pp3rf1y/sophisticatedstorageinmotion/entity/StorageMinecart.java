@@ -10,6 +10,7 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
@@ -20,10 +21,10 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.MinecartChest;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.util.SimpleItemContent;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.client.gui.StorageInMotionTranslationHelper;
@@ -45,8 +46,16 @@ public class StorageMinecart extends MinecartChest implements IMovingStorageEnti
 		entityStorageHolder = new EntityStorageHolder<>(this);
 	}
 
-	private StorageMinecart(Level level) {
+	public StorageMinecart(Level level) {
 		this(ModEntities.STORAGE_MINECART.get(), level);
+	}
+
+	public StorageMinecart(Level level, double x, double y, double z) {
+		this(level);
+		this.setPos(x, y, z);
+		this.xo = x;
+		this.yo = y;
+		this.zo = z;
 	}
 
 	@Override
@@ -71,12 +80,9 @@ public class StorageMinecart extends MinecartChest implements IMovingStorageEnti
 		return entityStorageHolder;
 	}
 
-	public StorageMinecart(Level level, double x, double y, double z) {
-		this(level);
-		this.setPos(x, y, z);
-		this.xo = x;
-		this.yo = y;
-		this.zo = z;
+	@Override
+	public boolean hurt(DamageSource source, float amount) {
+		return getStorageHolder().hurt(source, amount, super::hurt);
 	}
 
 	@Override
@@ -86,8 +92,8 @@ public class StorageMinecart extends MinecartChest implements IMovingStorageEnti
 	}
 
 	@Override
-	public Item getDropItem() {
-		return ModItems.STORAGE_MINECART.get();
+	public ItemStack getDropStack() {
+		return new ItemStack(ModItems.STORAGE_MINECART.get());
 	}
 
 	@Override
@@ -137,7 +143,11 @@ public class StorageMinecart extends MinecartChest implements IMovingStorageEnti
 
 	@Override
 	public InteractionResult interact(Player player, InteractionHand hand) {
-		return getStorageHolder().openContainerMenu(player);
+		if (player instanceof ServerPlayer serverPlayer) {
+			return getStorageHolder().openContainerMenu(serverPlayer);
+		}
+
+		return InteractionResult.SUCCESS;
 	}
 
 	@Override
@@ -146,8 +156,14 @@ public class StorageMinecart extends MinecartChest implements IMovingStorageEnti
 	}
 
 	@Override
+	public void remove(RemovalReason pReason) {
+		//overriden to prevent default minecart logic from using container overrides to drop items when in some cases they are not supposed to be dropped
+		setRemoved(pReason);
+	}
+
+	@Override
 	public int getContainerSize() {
-		return 0;
+		return getStorageHolder().getStorageWrapper().getInventoryForInputOutput().getSlotCount();
 	}
 
 	@Override
@@ -190,23 +206,28 @@ public class StorageMinecart extends MinecartChest implements IMovingStorageEnti
 
 	@Override
 	public ItemStack removeChestVehicleItemNoUpdate(int slot) {
-		InventoryHandler inventoryHandler = getStorageHolder().getStorageWrapper().getInventoryHandler();
+		ITrackedContentsItemHandler inventoryHandler = getStorageHolder().getStorageWrapper().getInventoryForInputOutput();
 		return inventoryHandler.extractItem(slot, inventoryHandler.getStackInSlot(slot).getCount(), false);
 	}
 
 	@Override
 	public ItemStack getChestVehicleItem(int slot) {
-		return getStorageHolder().getStorageWrapper().getInventoryHandler().getStackInSlot(slot);
+		return getStorageHolder().getStorageWrapper().getInventoryForInputOutput().getStackInSlot(slot);
 	}
 
 	@Override
 	public ItemStack removeChestVehicleItem(int slot, int amount) {
-		return getStorageHolder().getStorageWrapper().getInventoryHandler().extractItem(slot, amount, false);
+		return getStorageHolder().getStorageWrapper().getInventoryForInputOutput().extractItem(slot, amount, false);
 	}
 
 	@Override
 	public void setChestVehicleItem(int slot, ItemStack stack) {
-		getStorageHolder().getStorageWrapper().getInventoryHandler().setStackInSlot(slot, stack);
+		getStorageHolder().getStorageWrapper().getInventoryForInputOutput().setStackInSlot(slot, stack);
+	}
+
+	@Override
+	public boolean canPlaceItem(int slot, ItemStack stack) {
+		return getStorageHolder().getStorageWrapper().getInventoryForInputOutput().isItemValid(slot, stack);
 	}
 
 	@Override

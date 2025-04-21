@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "minecraft:jungle_chest_boat"
+    },
+    {
+      "item": "minecraft:redstone_torch"
+    }
+  ],
+  "result": {
+    "components": {
+      "sophisticatedstorageinmotion:boat_type": "jungle",
+      "sophisticatedstorageinmotion:storage_item": {
+        "components": {
+          "sophisticatedstorage:wood_type": "oak"
+        },
+        "count": 1,
+        "id": "sophisticatedstorage:chest"
+      }
+    },
+    "count": 1,
+    "id": "sophisticatedstorageinmotion:storage_boat"
+  }
+}

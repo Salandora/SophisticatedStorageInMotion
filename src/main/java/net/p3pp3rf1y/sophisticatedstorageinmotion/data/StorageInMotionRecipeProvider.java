@@ -9,8 +9,10 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.data.recipes.SpecialRecipeBuilder;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -25,6 +27,7 @@ import net.p3pp3rf1y.sophisticatedstorageinmotion.SophisticatedStorageInMotion;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.crafting.*;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.init.ModItems;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.item.MovingStorageItem;
+import net.p3pp3rf1y.sophisticatedstorageinmotion.item.StorageBoatItem;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.UnaryOperator;
@@ -44,63 +47,98 @@ public class StorageInMotionRecipeProvider extends FabricRecipeProvider {
 				.unlockedBy("has_sophisticated_storage", has(ModBlocks.ALL_STORAGE_TAG))
 				.save(recipeOutput);
 
-		SCShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, MovingStorageItem.createWithStorage(ModItems.STORAGE_MINECART.get(), WoodStorageBlockItem.setWoodType(new ItemStack(ModBlocks.CHEST_ITEM.get()), WoodType.OAK)))
+		addStorageBoatFromStorageRecipes(recipeOutput);
+
+		SCShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, MovingStorageItem.createWithStorage(new ItemStack(ModItems.STORAGE_MINECART.get()), WoodStorageBlockItem.setWoodType(new ItemStack(ModBlocks.CHEST_ITEM.get()), WoodType.OAK)))
 				.requires(Items.CHEST_MINECART)
 				.requires(Items.REDSTONE_TORCH)
 				.unlockedBy("has_chest_minecart", has(Items.CHEST_MINECART))
 				.save(recipeOutput, SophisticatedStorageInMotion.getRegistryName("chest_minecart_to_storage_minecart"));
 
-		addTierUpgradeRecipes(recipeOutput);
+		addVanillaChestBoatConversionRecipes(recipeOutput);
+
+		addTierUpgradeRecipes(recipeOutput, ModItems.STORAGE_MINECART);
+		addTierUpgradeRecipes(recipeOutput, ModItems.STORAGE_BOAT);
 	}
 
-	private static void addTierUpgradeRecipes(RecipeOutput recipeOutput) {
-		addMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.CHEST_ITEM.get(), ModBlocks.COPPER_CHEST_ITEM.get(), ConventionalItemTags.COPPER_INGOTS);
-		addMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.BARREL_ITEM.get(), ModBlocks.COPPER_BARREL_ITEM.get(), ConventionalItemTags.COPPER_INGOTS);
-		addMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.SHULKER_BOX_ITEM.get(), ModBlocks.COPPER_SHULKER_BOX_ITEM.get(), ConventionalItemTags.COPPER_INGOTS);
-		addMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.LIMITED_BARREL_1_ITEM.get(), ModBlocks.LIMITED_COPPER_BARREL_1_ITEM.get(), ConventionalItemTags.COPPER_INGOTS);
-		addMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.LIMITED_BARREL_2_ITEM.get(), ModBlocks.LIMITED_COPPER_BARREL_2_ITEM.get(), ConventionalItemTags.COPPER_INGOTS);
-		addMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.LIMITED_BARREL_3_ITEM.get(), ModBlocks.LIMITED_COPPER_BARREL_3_ITEM.get(), ConventionalItemTags.COPPER_INGOTS);
-		addMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.LIMITED_BARREL_4_ITEM.get(), ModBlocks.LIMITED_COPPER_BARREL_4_ITEM.get(), ConventionalItemTags.COPPER_INGOTS);
+	private void addVanillaChestBoatConversionRecipes(RecipeOutput recipeOutput) {
+		addVanillaChestBoatConversionRecipe(recipeOutput, Boat.Type.OAK, Items.OAK_CHEST_BOAT);
+		addVanillaChestBoatConversionRecipe(recipeOutput, Boat.Type.SPRUCE, Items.SPRUCE_CHEST_BOAT);
+		addVanillaChestBoatConversionRecipe(recipeOutput, Boat.Type.BIRCH, Items.BIRCH_CHEST_BOAT);
+		addVanillaChestBoatConversionRecipe(recipeOutput, Boat.Type.JUNGLE, Items.JUNGLE_CHEST_BOAT);
+		addVanillaChestBoatConversionRecipe(recipeOutput, Boat.Type.ACACIA, Items.ACACIA_CHEST_BOAT);
+		addVanillaChestBoatConversionRecipe(recipeOutput, Boat.Type.DARK_OAK, Items.DARK_OAK_CHEST_BOAT);
+		addVanillaChestBoatConversionRecipe(recipeOutput, Boat.Type.MANGROVE, Items.MANGROVE_CHEST_BOAT);
+		addVanillaChestBoatConversionRecipe(recipeOutput, Boat.Type.BAMBOO, Items.BAMBOO_CHEST_RAFT);
+		addVanillaChestBoatConversionRecipe(recipeOutput, Boat.Type.CHERRY, Items.CHERRY_CHEST_BOAT);
+	}
 
-		addCheaperMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.COPPER_CHEST_ITEM.get(), ModBlocks.IRON_CHEST_ITEM.get(), ConventionalItemTags.IRON_INGOTS);
-		addCheaperMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.COPPER_BARREL_ITEM.get(), ModBlocks.IRON_BARREL_ITEM.get(), ConventionalItemTags.IRON_INGOTS);
-		addCheaperMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.COPPER_SHULKER_BOX_ITEM.get(), ModBlocks.IRON_SHULKER_BOX_ITEM.get(), ConventionalItemTags.IRON_INGOTS);
-		addCheaperMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.LIMITED_COPPER_BARREL_1_ITEM.get(), ModBlocks.LIMITED_IRON_BARREL_1_ITEM.get(), ConventionalItemTags.IRON_INGOTS);
-		addCheaperMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.LIMITED_COPPER_BARREL_2_ITEM.get(), ModBlocks.LIMITED_IRON_BARREL_2_ITEM.get(), ConventionalItemTags.IRON_INGOTS);
-		addCheaperMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.LIMITED_COPPER_BARREL_3_ITEM.get(), ModBlocks.LIMITED_IRON_BARREL_3_ITEM.get(), ConventionalItemTags.IRON_INGOTS);
-		addCheaperMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.LIMITED_COPPER_BARREL_4_ITEM.get(), ModBlocks.LIMITED_IRON_BARREL_4_ITEM.get(), ConventionalItemTags.IRON_INGOTS);
+	private static void addVanillaChestBoatConversionRecipe(RecipeOutput recipeOutput, Boat.Type boatType, Item vanillaChestBoat) {
+		SCShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, MovingStorageItem.createWithStorage(StorageBoatItem.setBoatType(new ItemStack(ModItems.STORAGE_BOAT.get()), boatType), WoodStorageBlockItem.setWoodType(new ItemStack(ModBlocks.CHEST_ITEM.get()), WoodType.OAK)))
+				.requires(vanillaChestBoat)
+				.requires(Items.REDSTONE_TORCH)
+				.unlockedBy("has_" + BuiltInRegistries.ITEM.getKey(vanillaChestBoat).getPath(), has(vanillaChestBoat))
+				.save(recipeOutput, SophisticatedStorageInMotion.getRegistryName(boatType.getName() + "_storage_" + (/*boatType.isRaft()*/boatType == Boat.Type.BAMBOO ? "raft" : "boat") + "_from_vanilla"));
+	}
 
-		addMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.CHEST_ITEM.get(), ModBlocks.IRON_CHEST_ITEM.get(), ConventionalItemTags.IRON_INGOTS);
-		addMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.BARREL_ITEM.get(), ModBlocks.IRON_BARREL_ITEM.get(), ConventionalItemTags.IRON_INGOTS);
-		addMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.SHULKER_BOX_ITEM.get(), ModBlocks.IRON_SHULKER_BOX_ITEM.get(), ConventionalItemTags.IRON_INGOTS);
-		addMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.LIMITED_BARREL_1_ITEM.get(), ModBlocks.LIMITED_IRON_BARREL_1_ITEM.get(), ConventionalItemTags.IRON_INGOTS);
-		addMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.LIMITED_BARREL_2_ITEM.get(), ModBlocks.LIMITED_IRON_BARREL_2_ITEM.get(), ConventionalItemTags.IRON_INGOTS);
-		addMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.LIMITED_BARREL_3_ITEM.get(), ModBlocks.LIMITED_IRON_BARREL_3_ITEM.get(), ConventionalItemTags.IRON_INGOTS);
-		addMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.LIMITED_BARREL_4_ITEM.get(), ModBlocks.LIMITED_IRON_BARREL_4_ITEM.get(), ConventionalItemTags.IRON_INGOTS);
+	private void addStorageBoatFromStorageRecipes(RecipeOutput recipeOutput) {
+		StorageBoatItem.SUPPORTED_BOAT_TYPES.forEach((boatType, baseBoat) -> {
+			ShapelessBasedRecipeBuilder.shapeless(StorageBoatItem.setBoatType(new ItemStack(ModItems.STORAGE_BOAT.get()), boatType), MovingStorageFromStorageRecipe::new)
+					.requires(baseBoat.get())
+					.requires(ModBlocks.ALL_STORAGE_TAG)
+					.unlockedBy("has_sophisticated_storage", has(ModBlocks.ALL_STORAGE_TAG))
+					.save(recipeOutput, SophisticatedStorageInMotion.getRegistryName(boatType.getName() + "_storage_" + (/*boatType.isRaft()*/boatType == Boat.Type.BAMBOO ? "raft" : "boat")));
+		});
+	}
 
-		addMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.IRON_CHEST_ITEM.get(), ModBlocks.GOLD_CHEST_ITEM.get(), ConventionalItemTags.GOLD_INGOTS);
-		addMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.IRON_BARREL_ITEM.get(), ModBlocks.GOLD_BARREL_ITEM.get(), ConventionalItemTags.GOLD_INGOTS);
-		addMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.IRON_SHULKER_BOX_ITEM.get(), ModBlocks.GOLD_SHULKER_BOX_ITEM.get(), ConventionalItemTags.GOLD_INGOTS);
-		addMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.LIMITED_IRON_BARREL_1_ITEM.get(), ModBlocks.LIMITED_GOLD_BARREL_1_ITEM.get(), ConventionalItemTags.GOLD_INGOTS);
-		addMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.LIMITED_IRON_BARREL_2_ITEM.get(), ModBlocks.LIMITED_GOLD_BARREL_2_ITEM.get(), ConventionalItemTags.GOLD_INGOTS);
-		addMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.LIMITED_IRON_BARREL_3_ITEM.get(), ModBlocks.LIMITED_GOLD_BARREL_3_ITEM.get(), ConventionalItemTags.GOLD_INGOTS);
-		addMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.LIMITED_IRON_BARREL_4_ITEM.get(), ModBlocks.LIMITED_GOLD_BARREL_4_ITEM.get(), ConventionalItemTags.GOLD_INGOTS);
+	private static void addTierUpgradeRecipes(RecipeOutput recipeOutput, DeferredHolder<Item, ?> movingStorageItem) {
+		addMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.CHEST_ITEM.get(), ModBlocks.COPPER_CHEST_ITEM.get(), ConventionalItemTags.COPPER_INGOTS);
+		addMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.BARREL_ITEM.get(), ModBlocks.COPPER_BARREL_ITEM.get(), ConventionalItemTags.COPPER_INGOTS);
+		addMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.SHULKER_BOX_ITEM.get(), ModBlocks.COPPER_SHULKER_BOX_ITEM.get(), ConventionalItemTags.COPPER_INGOTS);
+		addMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.LIMITED_BARREL_1_ITEM.get(), ModBlocks.LIMITED_COPPER_BARREL_1_ITEM.get(), ConventionalItemTags.COPPER_INGOTS);
+		addMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.LIMITED_BARREL_2_ITEM.get(), ModBlocks.LIMITED_COPPER_BARREL_2_ITEM.get(), ConventionalItemTags.COPPER_INGOTS);
+		addMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.LIMITED_BARREL_3_ITEM.get(), ModBlocks.LIMITED_COPPER_BARREL_3_ITEM.get(), ConventionalItemTags.COPPER_INGOTS);
+		addMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.LIMITED_BARREL_4_ITEM.get(), ModBlocks.LIMITED_COPPER_BARREL_4_ITEM.get(), ConventionalItemTags.COPPER_INGOTS);
 
-		addMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.GOLD_CHEST_ITEM.get(), ModBlocks.DIAMOND_CHEST_ITEM.get(), ConventionalItemTags.DIAMOND_GEMS);
-		addMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.GOLD_BARREL_ITEM.get(), ModBlocks.DIAMOND_BARREL_ITEM.get(), ConventionalItemTags.DIAMOND_GEMS);
-		addMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.GOLD_SHULKER_BOX_ITEM.get(), ModBlocks.DIAMOND_SHULKER_BOX_ITEM.get(), ConventionalItemTags.DIAMOND_GEMS);
-		addMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.LIMITED_GOLD_BARREL_1_ITEM.get(), ModBlocks.LIMITED_DIAMOND_BARREL_1_ITEM.get(), ConventionalItemTags.DIAMOND_GEMS);
-		addMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.LIMITED_GOLD_BARREL_2_ITEM.get(), ModBlocks.LIMITED_DIAMOND_BARREL_2_ITEM.get(), ConventionalItemTags.DIAMOND_GEMS);
-		addMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.LIMITED_GOLD_BARREL_3_ITEM.get(), ModBlocks.LIMITED_DIAMOND_BARREL_3_ITEM.get(), ConventionalItemTags.DIAMOND_GEMS);
-		addMovingStorageTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.LIMITED_GOLD_BARREL_4_ITEM.get(), ModBlocks.LIMITED_DIAMOND_BARREL_4_ITEM.get(), ConventionalItemTags.DIAMOND_GEMS);
+		addCheaperMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.COPPER_CHEST_ITEM.get(), ModBlocks.IRON_CHEST_ITEM.get(), ConventionalItemTags.IRON_INGOTS);
+		addCheaperMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.COPPER_BARREL_ITEM.get(), ModBlocks.IRON_BARREL_ITEM.get(), ConventionalItemTags.IRON_INGOTS);
+		addCheaperMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.COPPER_SHULKER_BOX_ITEM.get(), ModBlocks.IRON_SHULKER_BOX_ITEM.get(), ConventionalItemTags.IRON_INGOTS);
+		addCheaperMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.LIMITED_COPPER_BARREL_1_ITEM.get(), ModBlocks.LIMITED_IRON_BARREL_1_ITEM.get(), ConventionalItemTags.IRON_INGOTS);
+		addCheaperMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.LIMITED_COPPER_BARREL_2_ITEM.get(), ModBlocks.LIMITED_IRON_BARREL_2_ITEM.get(), ConventionalItemTags.IRON_INGOTS);
+		addCheaperMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.LIMITED_COPPER_BARREL_3_ITEM.get(), ModBlocks.LIMITED_IRON_BARREL_3_ITEM.get(), ConventionalItemTags.IRON_INGOTS);
+		addCheaperMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.LIMITED_COPPER_BARREL_4_ITEM.get(), ModBlocks.LIMITED_IRON_BARREL_4_ITEM.get(), ConventionalItemTags.IRON_INGOTS);
 
-		addMovingStorageDiamondToNetheriteTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.DIAMOND_CHEST_ITEM.get(), ModBlocks.NETHERITE_CHEST_ITEM.get());
-		addMovingStorageDiamondToNetheriteTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.DIAMOND_BARREL_ITEM.get(), ModBlocks.NETHERITE_BARREL_ITEM.get());
-		addMovingStorageDiamondToNetheriteTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.DIAMOND_SHULKER_BOX_ITEM.get(), ModBlocks.NETHERITE_SHULKER_BOX_ITEM.get());
-		addMovingStorageDiamondToNetheriteTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.LIMITED_DIAMOND_BARREL_1_ITEM.get(), ModBlocks.LIMITED_NETHERITE_BARREL_1_ITEM.get());
-		addMovingStorageDiamondToNetheriteTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.LIMITED_DIAMOND_BARREL_2_ITEM.get(), ModBlocks.LIMITED_NETHERITE_BARREL_2_ITEM.get());
-		addMovingStorageDiamondToNetheriteTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.LIMITED_DIAMOND_BARREL_3_ITEM.get(), ModBlocks.LIMITED_NETHERITE_BARREL_3_ITEM.get());
-		addMovingStorageDiamondToNetheriteTierUpgradeRecipe(recipeOutput, ModItems.STORAGE_MINECART, ModBlocks.LIMITED_DIAMOND_BARREL_4_ITEM.get(), ModBlocks.LIMITED_NETHERITE_BARREL_4_ITEM.get());
+		addMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.CHEST_ITEM.get(), ModBlocks.IRON_CHEST_ITEM.get(), ConventionalItemTags.IRON_INGOTS);
+		addMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.BARREL_ITEM.get(), ModBlocks.IRON_BARREL_ITEM.get(), ConventionalItemTags.IRON_INGOTS);
+		addMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.SHULKER_BOX_ITEM.get(), ModBlocks.IRON_SHULKER_BOX_ITEM.get(), ConventionalItemTags.IRON_INGOTS);
+		addMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.LIMITED_BARREL_1_ITEM.get(), ModBlocks.LIMITED_IRON_BARREL_1_ITEM.get(), ConventionalItemTags.IRON_INGOTS);
+		addMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.LIMITED_BARREL_2_ITEM.get(), ModBlocks.LIMITED_IRON_BARREL_2_ITEM.get(), ConventionalItemTags.IRON_INGOTS);
+		addMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.LIMITED_BARREL_3_ITEM.get(), ModBlocks.LIMITED_IRON_BARREL_3_ITEM.get(), ConventionalItemTags.IRON_INGOTS);
+		addMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.LIMITED_BARREL_4_ITEM.get(), ModBlocks.LIMITED_IRON_BARREL_4_ITEM.get(), ConventionalItemTags.IRON_INGOTS);
+
+		addMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.IRON_CHEST_ITEM.get(), ModBlocks.GOLD_CHEST_ITEM.get(), ConventionalItemTags.GOLD_INGOTS);
+		addMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.IRON_BARREL_ITEM.get(), ModBlocks.GOLD_BARREL_ITEM.get(), ConventionalItemTags.GOLD_INGOTS);
+		addMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.IRON_SHULKER_BOX_ITEM.get(), ModBlocks.GOLD_SHULKER_BOX_ITEM.get(), ConventionalItemTags.GOLD_INGOTS);
+		addMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.LIMITED_IRON_BARREL_1_ITEM.get(), ModBlocks.LIMITED_GOLD_BARREL_1_ITEM.get(), ConventionalItemTags.GOLD_INGOTS);
+		addMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.LIMITED_IRON_BARREL_2_ITEM.get(), ModBlocks.LIMITED_GOLD_BARREL_2_ITEM.get(), ConventionalItemTags.GOLD_INGOTS);
+		addMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.LIMITED_IRON_BARREL_3_ITEM.get(), ModBlocks.LIMITED_GOLD_BARREL_3_ITEM.get(), ConventionalItemTags.GOLD_INGOTS);
+		addMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.LIMITED_IRON_BARREL_4_ITEM.get(), ModBlocks.LIMITED_GOLD_BARREL_4_ITEM.get(), ConventionalItemTags.GOLD_INGOTS);
+
+		addMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.GOLD_CHEST_ITEM.get(), ModBlocks.DIAMOND_CHEST_ITEM.get(), ConventionalItemTags.DIAMOND_GEMS);
+		addMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.GOLD_BARREL_ITEM.get(), ModBlocks.DIAMOND_BARREL_ITEM.get(), ConventionalItemTags.DIAMOND_GEMS);
+		addMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.GOLD_SHULKER_BOX_ITEM.get(), ModBlocks.DIAMOND_SHULKER_BOX_ITEM.get(), ConventionalItemTags.DIAMOND_GEMS);
+		addMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.LIMITED_GOLD_BARREL_1_ITEM.get(), ModBlocks.LIMITED_DIAMOND_BARREL_1_ITEM.get(), ConventionalItemTags.DIAMOND_GEMS);
+		addMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.LIMITED_GOLD_BARREL_2_ITEM.get(), ModBlocks.LIMITED_DIAMOND_BARREL_2_ITEM.get(), ConventionalItemTags.DIAMOND_GEMS);
+		addMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.LIMITED_GOLD_BARREL_3_ITEM.get(), ModBlocks.LIMITED_DIAMOND_BARREL_3_ITEM.get(), ConventionalItemTags.DIAMOND_GEMS);
+		addMovingStorageTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.LIMITED_GOLD_BARREL_4_ITEM.get(), ModBlocks.LIMITED_DIAMOND_BARREL_4_ITEM.get(), ConventionalItemTags.DIAMOND_GEMS);
+
+		addMovingStorageDiamondToNetheriteTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.DIAMOND_CHEST_ITEM.get(), ModBlocks.NETHERITE_CHEST_ITEM.get());
+		addMovingStorageDiamondToNetheriteTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.DIAMOND_BARREL_ITEM.get(), ModBlocks.NETHERITE_BARREL_ITEM.get());
+		addMovingStorageDiamondToNetheriteTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.DIAMOND_SHULKER_BOX_ITEM.get(), ModBlocks.NETHERITE_SHULKER_BOX_ITEM.get());
+		addMovingStorageDiamondToNetheriteTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.LIMITED_DIAMOND_BARREL_1_ITEM.get(), ModBlocks.LIMITED_NETHERITE_BARREL_1_ITEM.get());
+		addMovingStorageDiamondToNetheriteTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.LIMITED_DIAMOND_BARREL_2_ITEM.get(), ModBlocks.LIMITED_NETHERITE_BARREL_2_ITEM.get());
+		addMovingStorageDiamondToNetheriteTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.LIMITED_DIAMOND_BARREL_3_ITEM.get(), ModBlocks.LIMITED_NETHERITE_BARREL_3_ITEM.get());
+		addMovingStorageDiamondToNetheriteTierUpgradeRecipe(recipeOutput, movingStorageItem, ModBlocks.LIMITED_DIAMOND_BARREL_4_ITEM.get(), ModBlocks.LIMITED_NETHERITE_BARREL_4_ITEM.get());
 	}
 
 	private static void addCheaperMovingStorageTierUpgradeRecipe(RecipeOutput recipeOutput, DeferredHolder<Item, ?> movingStorageItem, Item storageItem, Item upgradedStorageItem, TagKey<Item> material) {
@@ -114,7 +152,7 @@ public class StorageInMotionRecipeProvider extends FabricRecipeProvider {
 	private static void addMovingStorageTierUpgradeRecipe(RecipeOutput recipeOutput, DeferredHolder<Item, ?> movingStorageItem, Item storageItem, Item upgradedStorageItem, TagKey<Item> material, UnaryOperator<SCShapedRecipeBuilder> patternInit) {
 		String storageItemPath = BuiltInRegistries.ITEM.getKey(storageItem).getPath();
 		Holder<Item> movingStorageItemHolder = BuiltInRegistries.ITEM.getHolder(movingStorageItem.getKey()).orElseThrow();
-		patternInit.apply(ShapeBasedRecipeBuilder.shaped(MovingStorageItem.createWithStorage(movingStorageItem.value(), new ItemStack(upgradedStorageItem)), MovingStorageTierUpgradeShapedRecipe::new))
+		patternInit.apply(ShapeBasedRecipeBuilder.shaped(MovingStorageItem.createWithStorage(new ItemStack(movingStorageItem.value()), new ItemStack(upgradedStorageItem)), MovingStorageTierUpgradeShapedRecipe::new))
 				.define('S', MovingStorageIngredient.of(movingStorageItemHolder, storageItem).toVanilla())
 				.define('M', material)
 				.unlockedBy("has_" + storageItemPath, has(storageItem))
@@ -124,7 +162,7 @@ public class StorageInMotionRecipeProvider extends FabricRecipeProvider {
 	private static void addMovingStorageDiamondToNetheriteTierUpgradeRecipe(RecipeOutput recipeOutput, DeferredHolder<Item, ?> movingStorageItem, Item storageItem, Item upgradedStorageItem) {
 		String storageItemPath = BuiltInRegistries.ITEM.getKey(storageItem).getPath();
 		Holder<Item> movingStorageItemHolder = BuiltInRegistries.ITEM.getHolder(movingStorageItem.getKey()).orElseThrow();
-		ShapelessBasedRecipeBuilder.shapeless(MovingStorageItem.createWithStorage(movingStorageItem.value(), new ItemStack(upgradedStorageItem)), MovingStorageTierUpgradeShapelessRecipe::new)
+		ShapelessBasedRecipeBuilder.shapeless(MovingStorageItem.createWithStorage(new ItemStack(movingStorageItem.value()), new ItemStack(upgradedStorageItem)), MovingStorageTierUpgradeShapelessRecipe::new)
 				.requires(MovingStorageIngredient.of(movingStorageItemHolder, storageItem).toVanilla())
 				.requires(ConventionalItemTags.NETHERITE_INGOTS)
 				.unlockedBy("has_" + storageItemPath, has(storageItem))

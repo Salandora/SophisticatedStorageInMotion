@@ -12,7 +12,7 @@ buildscript {
 
 plugins {
     id 'idea'
-    id 'fabric-loom' version '1.9.+'
+    id 'fabric-loom' version '1.10.+'
     id 'maven-publish'
     id "net.darkhax.curseforgegradle" version "1.1.15"
     id "com.modrinth.minotaur" version "2.+"
@@ -57,11 +57,11 @@ repositories {
         url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/"
     }
 
-    maven { url "https://maven.tterrag.com/" }
+    maven { url = "https://maven.tterrag.com/" }
     maven { url = "https://modmaven.dev/" }
-    maven { url "https://minecraft.curseforge.com/api/maven/"}
+    maven { url = "https://minecraft.curseforge.com/api/maven/"}
     maven {
-        url "https://www.cursemaven.com"
+        url = "https://www.cursemaven.com"
         content {
             includeGroup "curse.maven"
         }
@@ -314,7 +314,7 @@ processResources {
     }
 
     filesMatching("fabric.mod.json") {
-        expand replaceProperties + [project: project]
+        expand replaceProperties
 
         filter { String line ->
             line = line.replace("[\"mod_authors\"]", mod_authors.toString())
@@ -330,7 +330,7 @@ tasks.register('fixIntelliJResources', Copy) {
         return
 
     dependsOn processResources
-    group "fabric"
+    group = "fabric"
 
     from processResources
     into ideaResourceOutput[1]
