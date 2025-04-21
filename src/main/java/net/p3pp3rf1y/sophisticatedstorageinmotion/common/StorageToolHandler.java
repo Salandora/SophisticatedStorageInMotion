@@ -22,12 +22,12 @@ public class StorageToolHandler {
 	}
 
 	public static InteractionResult onStorageToolInteract(Player player, Level world, InteractionHand hand, Entity entity, @Nullable EntityHitResult hitResult) {
-		if (!(entity instanceof IMovingStorageEntity movingStorageEntity)) {
+		ItemStack itemInHand = player.getItemInHand(hand);
+		if (!(entity instanceof IMovingStorageEntity movingStorageEntity) || itemInHand.getItem() != ModItems.STORAGE_TOOL || movingStorageEntity.getStorageHolder().isPacked()) {
 			return InteractionResult.PASS;
 		}
 
-		return InventoryHelper.getItemFromEitherHand(player, ModItems.STORAGE_TOOL)
-				.map(storageTool -> tryStorageToolInteract(movingStorageEntity, storageTool)).orElse(InteractionResult.PASS);
+		return tryStorageToolInteract(movingStorageEntity, itemInHand);
 	}
 
 	private static InteractionResult tryStorageToolInteract(IMovingStorageEntity movingStorageEntity, ItemStack storageTool) {

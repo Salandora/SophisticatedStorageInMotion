@@ -17,6 +17,7 @@ import net.minecraft.world.level.block.DispenserBlock;
 import net.p3pp3rf1y.sophisticatedcore.util.ItemBase;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.SophisticatedStorageInMotion;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.crafting.*;
+import net.p3pp3rf1y.sophisticatedstorageinmotion.item.StorageBoatItem;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.item.StorageMinecartItem;
 
 import java.util.ArrayList;
@@ -26,7 +27,8 @@ import java.util.function.Supplier;
 public class ModItems {
 	static List<Item> ITEMS = new ArrayList<>(); // Must be up here!
 
-	public static final StorageMinecartItem STORAGE_MINECART = register("storage_minecart", StorageMinecartItem::new);
+	public static final Item STORAGE_MINECART = register("storage_minecart", StorageMinecartItem::new);
+	public static final Item STORAGE_BOAT = register("storage_boat", StorageBoatItem::new);
 
 	public static final RecipeSerializer<?> MOVING_STORAGE_FROM_STORAGE_SERIALIZER = registerRecipeSerializer("moving_storage_from_storage", MovingStorageFromStorageRecipe.Serializer::new);
 	public static final RecipeSerializer<? extends CraftingRecipe> UNCRAFT_MOVING_STORAGE_SERIALIZER = registerRecipeSerializer("uncraft_moving_storage", () -> new SimpleCraftingRecipeSerializer<>(UncraftMovingStorageRecipe::new));
@@ -51,6 +53,7 @@ public class ModItems {
 
 	public static void registerDispenseBehavior() {
 		DispenserBlock.registerBehavior(STORAGE_MINECART, StorageMinecartItem.DISPENSE_ITEM_BEHAVIOR);
+		DispenserBlock.registerBehavior(STORAGE_BOAT, StorageBoatItem.DISPENSE_ITEM_BEHAVIOR);
 	}
 
 	public static <T extends Item> T register(String id, Supplier<T> supplier) {

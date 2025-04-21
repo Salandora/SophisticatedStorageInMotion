@@ -35,28 +35,21 @@ public class TierUpgradeHandler {
 	private static final Map<StorageTierUpgradeItem.TierUpgrade, Map<Item, IEntityTierUpgradeDefinition>> ENTITY_TIER_UPGRADE_DEFINITIONS = new HashMap<>();
 
 	public static InteractionResult onTierUpgradeInteract(Player player, Level world, InteractionHand hand, Entity entity, @Nullable EntityHitResult hitResult) {
-		ItemStack tierUpgrade;
-		StorageTierUpgradeItem storageTierUpgradeItem;
-		if (player.getMainHandItem().getItem() instanceof StorageTierUpgradeItem item) {
-			tierUpgrade = player.getMainHandItem();
-			storageTierUpgradeItem = item;
-		} else if (player.getOffhandItem().getItem() instanceof StorageTierUpgradeItem item) {
-			tierUpgrade = player.getOffhandItem();
-			storageTierUpgradeItem = item;
-		} else {
+		ItemStack itemInHand = player.getItemInHand(hand);
+		if (!(itemInHand.getItem() instanceof StorageTierUpgradeItem tierUpgradeItem)) {
 			return InteractionResult.PASS;
 		}
 
-		Map<Item, IEntityTierUpgradeDefinition> tierDefinitions = ENTITY_TIER_UPGRADE_DEFINITIONS.get(storageTierUpgradeItem.getTier());
+		Map<Item, IEntityTierUpgradeDefinition> tierDefinitions = ENTITY_TIER_UPGRADE_DEFINITIONS.get(tierUpgradeItem.getTier());
 		if (tierDefinitions == null) {
-			SophisticatedStorageInMotion.LOGGER.warn("No tier upgrade definitions found for {}", storageTierUpgradeItem.getTier());
+			SophisticatedStorageInMotion.LOGGER.warn("No tier upgrade definitions found for {}", tierUpgradeItem.getTier());
 			return InteractionResult.PASS;
 		}
 
-		if (entity instanceof IMovingStorageEntity movingStorage && !movingStorage.getStorageHolder().isOpen()) {
-			return upgradeEntity(entity, player, tierUpgrade, tierDefinitions, movingStorage.getStorageItem().getItem(), movingStorage.getStorageItem());
+		if (entity instanceof IMovingStorageEntity movingStorage && !movingStorage.getStorageHolder().isOpen() && !movingStorage.getStorageHolder().isPacked()) {
+			return upgradeEntity(entity, player, itemInHand, tierDefinitions, movingStorage.getStorageItem().getItem(), movingStorage.getStorageItem());
 		} else if (entity instanceof MinecartChest minecartChest) {
-			return upgradeEntity(minecartChest, player, tierUpgrade, tierDefinitions, Items.CHEST, ItemStack.EMPTY);
+			return upgradeEntity(minecartChest, player, itemInHand, tierDefinitions, Items.CHEST, ItemStack.EMPTY);
 		}
 
 		return InteractionResult.PASS;

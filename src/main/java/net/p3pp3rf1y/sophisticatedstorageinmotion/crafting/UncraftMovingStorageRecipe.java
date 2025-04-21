@@ -65,7 +65,7 @@ public class UncraftMovingStorageRecipe extends CustomRecipe {
 		for (int slot = 0; slot < input.getContainerSize(); slot++) {
 			ItemStack slotStack = input.getItem(slot);
 			if (slotStack.getItem() instanceof MovingStorageItem movingStorageItem) {
-				remainingItems.set(slot, movingStorageItem.getUncraftRemainingItem());
+				remainingItems.set(slot, movingStorageItem.getUncraftRemainingItem(slotStack));
 			}
 		}
 		return remainingItems;

@@ -12,6 +12,7 @@ import net.p3pp3rf1y.sophisticatedstorageinmotion.common.gui.MovingLimitedBarrel
 import net.p3pp3rf1y.sophisticatedstorageinmotion.common.gui.MovingLimitedBarrelSettingsContainerMenu;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.common.gui.MovingStorageContainerMenu;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.common.gui.MovingStorageSettingsContainerMenu;
+import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.StorageBoat;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.StorageMinecart;
 
 import java.util.function.Supplier;
@@ -21,6 +22,7 @@ public class ModEntities {
 	}
 
 	public static final EntityType<StorageMinecart> STORAGE_MINECART = registerEntityType("storage_minecart", () -> EntityType.Builder.of((EntityType.EntityFactory<StorageMinecart>) StorageMinecart::new, MobCategory.MISC).sized(0.98F, 0.7F).clientTrackingRange(8).build(SophisticatedStorageInMotion.MOD_ID + ":storage_minecart"));
+	public static final EntityType<StorageBoat> STORAGE_BOAT = registerEntityType("storage_boat", () -> EntityType.Builder.of((EntityType.EntityFactory<StorageBoat>) StorageBoat::new, MobCategory.MISC).sized(1.375F, 0.5625F).clientTrackingRange(10).build(SophisticatedStorageInMotion.MOD_ID + ":storage_boat"));
 
 	public static final MenuType<MovingStorageContainerMenu<?>> MOVING_STORAGE_CONTAINER_TYPE = registerMenu("moving_storage",
 			() -> new ExtendedScreenHandlerType<>(MovingStorageContainerMenu::fromBuffer));
