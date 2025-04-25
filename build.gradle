@@ -31,64 +31,91 @@ repositories {
     mavenLocal()
     mavenCentral()
 
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "Modrinth"
+                url = "https://api.modrinth.com/maven"
+            }
+        }
+        filter {
+            includeGroup "maven.modrinth"
+        }
+    }
+    exclusiveContent {
+        forRepository {
+            maven {
+                name "CurseForge"
+                url "https://cursemaven.com"
+            }
+        }
+        filter {
+            includeGroup "curse.maven"
+        }
+    }
+    exclusiveContent {
+        forRepositories(
+                maven { url = "https://mvn.devos.one/snapshots/" },
+                maven { url = "https://mvn.devos.one/releases/" }
+        )
+        filter {
+            includeGroup "io.github.fabricators_of_create.Porting-Lib"
+        }
+    }
+
     maven {
         name = 'ParchmentMC'
         url = 'https://maven.parchmentmc.org'
     }
-
     maven { url = "https://maven.fabricmc.net/" } // FAPI, Loader
     maven { url = "https://maven.quiltmc.org/repository/release" } // QM
     maven {
         name = "GitHubPackages"
-        url = uri("https://maven.pkg.github.com/Salandora/Porting-Lib")
+        url = "https://maven.pkg.github.com/Salandora/SophisticatedCore"
         credentials {
             username = System.getenv("USERNAME")
             password = System.getenv("READ_PACKAGES_TOKEN")
         }
         content {
-            includeGroupByRegex "io.github.fabricators_of_create.Porting-Lib.*"
+            includeGroupAndSubgroups "sophisticatedcore"
         }
     }
-    maven { url = "https://mvn.devos.one/snapshots/" } // Create, Porting Lib
-    maven { url = "https://mvn.devos.one/releases/" } // Porting Lib
-
+    maven {
+        name = "GitHubPackagesStorage"
+        url = "https://maven.pkg.github.com/Salandora/SophisticatedStorage"
+        credentials {
+            username = System.getenv("USERNAME")
+            password = System.getenv("READ_PACKAGES_TOKEN")
+        }
+        content {
+            includeGroupAndSubgroups"sophisticatedstorage"
+        }
+    }
     maven { // Forge Config API Port
         name = "Fuzs Mod Resources"
         url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/"
-    }
-
-    maven { url = "https://maven.tterrag.com/" }
-    maven { url = "https://modmaven.dev/" }
-    maven { url = "https://minecraft.curseforge.com/api/maven/"}
-    maven {
-        url = "https://www.cursemaven.com"
         content {
-            includeGroup "curse.maven"
+            includeGroup "fuzs.forgeconfigapiport"
         }
     }
-    maven { url = "https://maven.terraformersmc.com/releases/" } // Emi
-    maven { url = "https://maven.shedaniel.me/" } // REI and deps
-
-    maven {
-        name = "GHPCore"
-        url = uri("https://maven.pkg.github.com/Salandora/sophisticatedcore")
-        credentials {
-            username = System.getenv("USERNAME")
-            password = System.getenv("READ_PACKAGES_TOKEN")
-        }
+    maven { // Jei
+        url = "https://modmaven.dev"
         content {
-            includeGroupByRegex "sophisticatedcore.*"
+            includeGroup "mezz.jei"
         }
     }
-    maven {
-        name = "GHPStorage"
-        url = uri("https://maven.pkg.github.com/Salandora/sophisticatedstorage")
-        credentials {
-            username = System.getenv("USERNAME")
-            password = System.getenv("READ_PACKAGES_TOKEN")
-        }
+    maven {  // REI and deps
+        url = "https://maven.shedaniel.me/"
         content {
-            includeGroupByRegex "sophisticatedstorage.*"
+            includeGroupAndSubgroups "me.shedaniel"
+            includeGroupAndSubgroups "dev.architectury"
+        }
+    }
+    maven {  // Emi
+        url = "https://maven.terraformersmc.com/releases/"
+        content {
+            includeGroupAndSubgroups "com.terraformersmc"
+            includeGroupAndSubgroups "dev.emi"
         }
     }
 }
@@ -171,7 +198,7 @@ loom {
     }
 }
 
-configurations.all {
+configurations.configureEach {
     resolutionStrategy {
         force "net.fabricmc:fabric-loader:$project.loader_version"
         force "net.fabricmc.fabric-api:fabric-api:$project.fabric_version"
