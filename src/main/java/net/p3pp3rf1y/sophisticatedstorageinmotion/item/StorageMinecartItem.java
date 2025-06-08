@@ -19,7 +19,6 @@ import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.RailShape;
 import net.minecraft.world.level.gameevent.GameEvent;
-import net.p3pp3rf1y.sophisticatedstorageinmotion.client.StorageMinecartItemRenderer;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.EntityStorageHolder;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.StorageMinecart;
 import org.jetbrains.annotations.Nullable;

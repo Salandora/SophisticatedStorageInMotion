@@ -1,10 +1,8 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.data;
 
-import io.github.fabricators_of_create.porting_lib.util.RegistryObject;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
 import net.fabricmc.fabric.api.tag.convention.v1.ConventionalItemTags;
-import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.data.recipes.SpecialRecipeBuilder;
@@ -14,7 +12,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.properties.WoodType;
-import net.p3pp3rf1y.sophisticatedcore.api.Tags;
 import net.p3pp3rf1y.sophisticatedcore.crafting.ShapeBasedRecipeBuilder;
 import net.p3pp3rf1y.sophisticatedcore.crafting.ShapelessBasedRecipeBuilder;
 import net.p3pp3rf1y.sophisticatedstorage.init.ModBlocks;
@@ -152,10 +149,6 @@ public class StorageInMotionRecipeProvider extends FabricRecipeProvider {
 				.define('M', material)
 				.unlockedBy("has_" + storageItemPath, has(storageItem))
 				.save(consumer, SophisticatedStorageInMotion.getRL(BuiltInRegistries.ITEM.getKey(movingStorageItem).getPath() + "_with_" + storageItemPath + "_to_" + BuiltInRegistries.ITEM.getKey(upgradedStorageItem).getPath()));
-	}
-
-	private static Holder getHolder(Item item) {
-		return BuiltInRegistries.ITEM.wrapAsHolder(item);
 	}
 
 	private static void addMovingStorageDiamondToNetheriteTierUpgradeRecipe(Consumer<FinishedRecipe> consumer, Item movingStorageItem, Item storageItem, Item upgradedStorageItem) {

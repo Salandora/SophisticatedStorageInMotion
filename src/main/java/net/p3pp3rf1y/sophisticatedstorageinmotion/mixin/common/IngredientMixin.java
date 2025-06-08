@@ -8,7 +8,9 @@ import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(Ingredient.class)
 public class IngredientMixin implements SophisticatedIngredient {
-	@Shadow @Final private Ingredient.Value[] values;
+	@Shadow
+	@Final
+	public Ingredient.Value[] values;
 
 	@Override
 	public Ingredient.Value[] sophisticated_getValues() {

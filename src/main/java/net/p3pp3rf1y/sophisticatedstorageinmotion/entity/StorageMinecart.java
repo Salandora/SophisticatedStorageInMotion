@@ -164,11 +164,11 @@ public class StorageMinecart extends MinecartChest implements IMovingStorageEnti
 	public void remove(RemovalReason pReason) {
 		//overriden to prevent default minecart logic from using container overrides to drop items when in some cases they are not supposed to be dropped
 		setRemoved(pReason);
-		sophisticatedInvalidateCaps();
+		sophisticatedCore$invalidateCaps();
 	}
 
 	@Override
-	public void sophisticatedInvalidateCaps() {
+	public void sophisticatedCore$invalidateCaps() {
 		itemHandler.invalidate();
 	}
 

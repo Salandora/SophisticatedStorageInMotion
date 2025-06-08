@@ -1,12 +1,10 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.init;
 
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
-import net.fabricmc.fabric.api.recipe.v1.ingredient.CustomIngredient;
 import net.fabricmc.fabric.api.recipe.v1.ingredient.CustomIngredientSerializer;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -37,9 +35,10 @@ public class ModItems {
 
 	public static CreativeModeTab CREATIVE_TAB = FabricItemGroup.builder().icon(() -> new ItemStack(STORAGE_MINECART))
 					.title(Component.translatable("itemGroup.sophisticatedstorageinmotion"))
-					.displayItems((featureFlags, output) -> {
-						ITEMS.stream().filter(i -> i instanceof ItemBase).forEach(i -> ((ItemBase) i).addCreativeTabItems(output::accept));
-					})
+					.displayItems((featureFlags, output) ->
+							ITEMS.stream()
+									.filter(i -> i instanceof ItemBase)
+									.forEach(i -> ((ItemBase) i).addCreativeTabItems(output::accept)))
 					.build();
 
 	public static void registerHandlers() {
