@@ -137,15 +137,15 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 	}
 
 	public static boolean areUpgradesVisible(ItemStack storageItem) {
-		return storageItem.sophisticatedCore_getOrDefault(ModDataComponents.UPGRADES_VISIBLE, false);
+		return storageItem.sophisticatedLibrary_getOrDefault(ModDataComponents.UPGRADES_VISIBLE, false);
 	}
 
 	public static boolean areCountsVisible(ItemStack storageItem) {
-		return storageItem.sophisticatedCore_getOrDefault(ModDataComponents.COUNTS_VISIBLE, true);
+		return storageItem.sophisticatedLibrary_getOrDefault(ModDataComponents.COUNTS_VISIBLE, true);
 	}
 
 	public static boolean areFillLevelsVisible(ItemStack storageItem) {
-		return storageItem.sophisticatedCore_getOrDefault(ModDataComponents.FILL_LEVELS_VISIBLE, false);
+		return storageItem.sophisticatedLibrary_getOrDefault(ModDataComponents.FILL_LEVELS_VISIBLE, false);
 	}
 
 	public void setStorageItemFrom(ItemStack stack, boolean setupDefaults) {
@@ -186,10 +186,10 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 
 	public void updateStorageWrapper() {
 		ItemStack storageItem = entity.getStorageItem();
-		UUID id = storageItem.sophisticatedCore_get(ModCoreDataComponents.STORAGE_UUID);
+		UUID id = storageItem.sophisticatedLibrary_get(ModCoreDataComponents.STORAGE_UUID);
 		if (id == null) {
 			id = UUID.randomUUID();
-			storageItem.sophisticatedCore_set(ModCoreDataComponents.STORAGE_UUID, id);
+			storageItem.sophisticatedLibrary_set(ModCoreDataComponents.STORAGE_UUID, id);
 			setStorageItem(storageItem);
 		}
 
@@ -219,7 +219,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 		}
 
 		ItemStack storageItem = entity.getStorageItem();
-		@Nullable UUID storageId = storageItem.sophisticatedCore_get(ModCoreDataComponents.STORAGE_UUID);
+		@Nullable UUID storageId = storageItem.sophisticatedLibrary_get(ModCoreDataComponents.STORAGE_UUID);
 		if (storageId == null) {
 			return;
 		}
@@ -300,15 +300,15 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 	}
 
 	public static boolean isLocked(ItemStack stack) {
-		return stack.sophisticatedCore_getOrDefault(ModDataComponents.LOCKED, false);
+		return stack.sophisticatedLibrary_getOrDefault(ModDataComponents.LOCKED, false);
 	}
 
 	public static boolean isLockVisible(ItemStack storageItem) {
-		return storageItem.sophisticatedCore_getOrDefault(ModDataComponents.LOCK_VISIBLE, true);
+		return storageItem.sophisticatedLibrary_getOrDefault(ModDataComponents.LOCK_VISIBLE, true);
 	}
 
 	public static CompoundTag getRenderInfoNbt(ItemStack storageItem) {
-		return storageItem.sophisticatedCore_getOrDefault(ModCoreDataComponents.RENDER_INFO_TAG, CustomData.EMPTY).copyTag();
+		return storageItem.sophisticatedLibrary_getOrDefault(ModCoreDataComponents.RENDER_INFO_TAG, CustomData.EMPTY).copyTag();
 	}
 
 	public StorageBlockEntity getRenderBlockEntity() {
@@ -448,13 +448,13 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 			ItemStack storageItem = entity.getStorageItem();
 			if (!isShulkerBox(storageItem) && !isPacked(storageItem)) {
 				dropAllItems();
-				if (storageItem.sophisticatedCore_has(ModCoreDataComponents.STORAGE_UUID)) {
-					MovingStorageData.get(storageItem.sophisticatedCore_get(ModCoreDataComponents.STORAGE_UUID)).removeStorageContents();
-					storageItem.sophisticatedCore_remove(ModCoreDataComponents.STORAGE_UUID);
+				if (storageItem.sophisticatedLibrary_has(ModCoreDataComponents.STORAGE_UUID)) {
+					MovingStorageData.get(storageItem.sophisticatedLibrary_get(ModCoreDataComponents.STORAGE_UUID)).removeStorageContents();
+					storageItem.sophisticatedLibrary_remove(ModCoreDataComponents.STORAGE_UUID);
 				}
 			}
 			ItemStack drop = entity.getDropStack();
-			drop.sophisticatedCore_set(ModDataComponents.STORAGE_ITEM, SimpleItemContent.copyOf(storageItem));
+			drop.sophisticatedLibrary_set(ModDataComponents.STORAGE_ITEM, SimpleItemContent.copyOf(storageItem));
 			if (entity.hasCustomName()) {
 				drop.set(DataComponents.CUSTOM_NAME, entity.getCustomName());
 			}
@@ -486,7 +486,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 			}
 		}
 
-		storageItem.sophisticatedCore_set(ModDataComponents.LOCKED, locked);
+		storageItem.sophisticatedLibrary_set(ModDataComponents.LOCKED, locked);
 		setStorageItem(storageItem);
 	}
 
@@ -507,7 +507,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 	@Override
 	public void toggleLockVisibility() {
 		ItemStack storageItem = entity.getStorageItem();
-		storageItem.sophisticatedCore_set(ModDataComponents.LOCK_VISIBLE, !isLockVisible(storageItem));
+		storageItem.sophisticatedLibrary_set(ModDataComponents.LOCK_VISIBLE, !isLockVisible(storageItem));
 		setStorageItem(storageItem);
 	}
 
@@ -519,7 +519,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 	@Override
 	public void toggleCountVisibility() {
 		ItemStack storageItem = entity.getStorageItem();
-		storageItem.sophisticatedCore_set(ModDataComponents.COUNTS_VISIBLE, !areCountsVisible(storageItem));
+		storageItem.sophisticatedLibrary_set(ModDataComponents.COUNTS_VISIBLE, !areCountsVisible(storageItem));
 		setStorageItem(storageItem);
 	}
 
@@ -536,7 +536,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 	@Override
 	public void toggleFillLevelVisibility() {
 		ItemStack storageItem = entity.getStorageItem();
-		storageItem.sophisticatedCore_set(ModDataComponents.FILL_LEVELS_VISIBLE, !areFillLevelsVisible(storageItem));
+		storageItem.sophisticatedLibrary_set(ModDataComponents.FILL_LEVELS_VISIBLE, !areFillLevelsVisible(storageItem));
 		setStorageItem(storageItem);
 	}
 
@@ -565,7 +565,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 	@Override
 	public void toggleUpgradesVisiblity() {
 		ItemStack storageItem = entity.getStorageItem();
-		storageItem.sophisticatedCore_set(ModDataComponents.UPGRADES_VISIBLE, !areUpgradesVisible(storageItem));
+		storageItem.sophisticatedLibrary_set(ModDataComponents.UPGRADES_VISIBLE, !areUpgradesVisible(storageItem));
 		setStorageItem(storageItem);
 	}
 

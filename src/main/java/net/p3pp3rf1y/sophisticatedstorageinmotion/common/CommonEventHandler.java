@@ -103,7 +103,7 @@ public class CommonEventHandler {
 			return;
 		}
 
-		@Nullable UUID storageId = result.sophisticatedCore_get(ModCoreDataComponents.STORAGE_UUID);
+		@Nullable UUID storageId = result.sophisticatedLibrary_get(ModCoreDataComponents.STORAGE_UUID);
 
 		if (storageId == null) {
 			return;
@@ -111,7 +111,7 @@ public class CommonEventHandler {
 
 		MovingStorageData storageData = MovingStorageData.get(storageId);
 		CompoundTag contents = storageData.getContents();
-		contents.put(StorageWrapper.RENDER_INFO_TAG, result.sophisticatedCore_getOrDefault(ModCoreDataComponents.RENDER_INFO_TAG, CustomData.EMPTY).copyTag());
+		contents.put(StorageWrapper.RENDER_INFO_TAG, result.sophisticatedLibrary_getOrDefault(ModCoreDataComponents.RENDER_INFO_TAG, CustomData.EMPTY).copyTag());
 		CompoundTag fullContents = new CompoundTag();
 		fullContents.put(StorageBlockEntity.STORAGE_WRAPPER_TAG, contents);
 
@@ -155,7 +155,7 @@ public class CommonEventHandler {
 					migratedContentsNbt.put(StorageWrapper.CONTENTS_TAG, contentsNbt.getCompound(StorageWrapper.CONTENTS_TAG));
 					migratedContentsNbt.put(StorageWrapper.SETTINGS_TAG, contentsNbt.getCompound(StorageWrapper.SETTINGS_TAG));
 					MovingStorageData.get(id).setContents(migratedContentsNbt);
-					storageItem.sophisticatedCore_set(ModCoreDataComponents.RENDER_INFO_TAG, CustomData.of(contentsNbt.getCompound(StorageWrapper.RENDER_INFO_TAG)));
+					storageItem.sophisticatedLibrary_set(ModCoreDataComponents.RENDER_INFO_TAG, CustomData.of(contentsNbt.getCompound(StorageWrapper.RENDER_INFO_TAG)));
 					MovingStorageItem.setStorageItem(result, storageItem);
 					itemContentsStorage.removeStorageContents(id);
 				});

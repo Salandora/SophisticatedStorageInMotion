@@ -100,8 +100,8 @@ public class StorageMinecart extends MinecartChest implements IMovingStorageEnti
 	public ItemStack getPickResult() {
 		ItemStack result = new ItemStack(ModItems.STORAGE_MINECART.get());
 		ItemStack storageItemCopy = getStorageItem().copy();
-		storageItemCopy.sophisticatedCore_remove(ModCoreDataComponents.STORAGE_UUID);
-		result.sophisticatedCore_set(ModDataComponents.STORAGE_ITEM, SimpleItemContent.copyOf(storageItemCopy));
+		storageItemCopy.sophisticatedLibrary_remove(ModCoreDataComponents.STORAGE_UUID);
+		result.sophisticatedLibrary_set(ModDataComponents.STORAGE_ITEM, SimpleItemContent.copyOf(storageItemCopy));
 		return result;
 	}
 
