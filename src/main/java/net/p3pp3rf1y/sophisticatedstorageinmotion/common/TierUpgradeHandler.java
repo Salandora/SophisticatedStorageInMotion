@@ -125,8 +125,8 @@ public class TierUpgradeHandler {
 			if (upgradedItem.getBlock() instanceof StorageBlockBase storageBlock) {
 				IStorageWrapper storageWrapper = movingStorage.getStorageHolder().getStorageWrapper();
 				if (storageWrapper instanceof MovingStorageWrapper movingStorageWrapper) {
-					int additionalInventorySlots = storageBlock.getNumberOfInventorySlots() - storageWrapper.getInventoryHandler().getSlots();
-					int additionalUpgradeSlots = storageBlock.getNumberOfUpgradeSlots() - storageWrapper.getUpgradeHandler().getSlots();
+					int additionalInventorySlots = storageBlock.getNumberOfInventorySlots() - storageWrapper.getInventoryHandler().getSlotCount();
+					int additionalUpgradeSlots = storageBlock.getNumberOfUpgradeSlots() - storageWrapper.getUpgradeHandler().getSlotCount();
 					movingStorageWrapper.changeSize(additionalInventorySlots, additionalUpgradeSlots);
 				}
 			}

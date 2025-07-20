@@ -158,7 +158,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 			ItemStack storageItem = storageItemContents.copy();
 			setStorageItem(storageItem);
 			if (setupDefaults && isLimitedBarrel(storageItem)) {
-				LimitedBarrelBlock.setupDefaultSettings(getStorageWrapper(), storageWrapper instanceof MovingStorageWrapper movingStorageWrapper ? movingStorageWrapper.getNumberOfInventorySlots() : storageWrapper.getInventoryHandler().getSlots());
+				LimitedBarrelBlock.setupDefaultSettings(getStorageWrapper(), storageWrapper instanceof MovingStorageWrapper movingStorageWrapper ? movingStorageWrapper.getNumberOfInventorySlots() : storageWrapper.getInventoryHandler().getSlotCount());
 			}
 		}
 	}
@@ -474,7 +474,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 
 		if (memorizesItemsWhenLocked()) {
 			if (locked) {
-				getStorageWrapper().getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).selectSlots(0, getStorageWrapper().getInventoryHandler().getSlots());
+				getStorageWrapper().getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).selectSlots(0, getStorageWrapper().getInventoryHandler().getSlotCount());
 			} else {
 				getStorageWrapper().getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).unselectAllSlots();
 				ItemDisplaySettingsCategory itemDisplaySettings = getStorageWrapper().getSettingsHandler().getTypeCategory(ItemDisplaySettingsCategory.class);

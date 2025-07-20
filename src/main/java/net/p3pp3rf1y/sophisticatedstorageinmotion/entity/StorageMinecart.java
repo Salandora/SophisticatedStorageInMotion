@@ -163,7 +163,7 @@ public class StorageMinecart extends MinecartChest implements IMovingStorageEnti
 
 	@Override
 	public int getContainerSize() {
-		return getStorageHolder().getStorageWrapper().getInventoryForInputOutput().getSlots();
+		return getStorageHolder().getStorageWrapper().getInventoryForInputOutput().getSlotCount();
 	}
 
 	@Override
@@ -199,7 +199,7 @@ public class StorageMinecart extends MinecartChest implements IMovingStorageEnti
 	public void clearChestVehicleContent() {
 		unpackChestVehicleLootTable(null);
 		InventoryHandler inventoryHandler = getStorageHolder().getStorageWrapper().getInventoryHandler();
-		for (int slot = 0; slot < inventoryHandler.getSlots(); slot++) {
+		for (int slot = 0; slot < inventoryHandler.getSlotCount(); slot++) {
 			inventoryHandler.setStackInSlot(slot, ItemStack.EMPTY);
 		}
 	}
