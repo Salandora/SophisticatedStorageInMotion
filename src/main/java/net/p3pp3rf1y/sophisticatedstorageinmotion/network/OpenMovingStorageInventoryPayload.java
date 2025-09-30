@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.network;
 
+import com.github.salandora.sophisticatedlibrary.network.handling.IPayloadContext;
 import io.netty.buffer.ByteBuf;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -22,7 +22,7 @@ public record OpenMovingStorageInventoryPayload(int entityId) implements CustomP
 		return TYPE;
 	}
 
-	public static void handlePayload(OpenMovingStorageInventoryPayload payload, ServerPlayNetworking.Context context) {
+	public static void handlePayload(OpenMovingStorageInventoryPayload payload, IPayloadContext context) {
 		Player player = context.player();
 		Entity entity = player.level().getEntity(payload.entityId());
 		if (entity instanceof IMovingStorageEntity storageEntity) {
