@@ -51,7 +51,7 @@ public class AssembleRecipesMaker {
 			List<ItemStack> storageItems = new ArrayList<>();
 			int i = 0;
 			for (Ingredient ingredient : ingredients) {
-				if (ingredient.sophisticated_getValues().length > 0 && ingredient.sophisticated_getValues()[0] instanceof Ingredient.ItemValue itemValue && itemValue.item().getItem() instanceof StorageBlockItem) {
+				if (ingredient.sophisticatedlibrary_getValues().length > 0 && ingredient.sophisticatedlibrary_getValues()[0] instanceof Ingredient.ItemValue itemValue && itemValue.item().getItem() instanceof StorageBlockItem) {
 					storageItems = expandStorageItems(ingredient.getItems());
 					storageIngredientIndex = i;
 					ingredientsTemplate.add(i, Ingredient.EMPTY);

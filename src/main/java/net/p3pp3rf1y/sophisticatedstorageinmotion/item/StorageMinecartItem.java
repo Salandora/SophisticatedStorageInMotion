@@ -32,7 +32,7 @@ public class StorageMinecartItem extends MovingStorageItem {
 			ServerLevel serverlevel = blockSource.level();
 			BlockPos blockpos = blockSource.pos().relative(direction);
 			BlockState blockstate = serverlevel.getBlockState(blockpos);
-			RailShape railshape = blockstate.getBlock() instanceof BaseRailBlock baseRailBlock ? baseRailBlock.sophisticated_getRailDirection(blockstate, serverlevel, blockpos, null) : RailShape.NORTH_SOUTH;
+			RailShape railshape = blockstate.getBlock() instanceof BaseRailBlock baseRailBlock ? baseRailBlock.sophisticatedlibrary_getRailDirection(blockstate, serverlevel, blockpos, null) : RailShape.NORTH_SOUTH;
 			double slopeOffset;
 			if (blockstate.is(BlockTags.RAILS)) {
 				if (railshape.isAscending()) {
@@ -46,7 +46,7 @@ public class StorageMinecartItem extends MovingStorageItem {
 				}
 
 				BlockState stateBelow = serverlevel.getBlockState(blockpos.below());
-				RailShape railShapeBelow = stateBelow.getBlock() instanceof BaseRailBlock baseRailBlock ? baseRailBlock.sophisticated_getRailDirection(stateBelow, serverlevel, blockpos.below(), null) : RailShape.NORTH_SOUTH;
+				RailShape railShapeBelow = stateBelow.getBlock() instanceof BaseRailBlock baseRailBlock ? baseRailBlock.sophisticatedlibrary_getRailDirection(stateBelow, serverlevel, blockpos.below(), null) : RailShape.NORTH_SOUTH;
 				if (direction != Direction.DOWN && railShapeBelow.isAscending()) {
 					slopeOffset = -0.4;
 				} else {
@@ -78,7 +78,7 @@ public class StorageMinecartItem extends MovingStorageItem {
 		} else {
 			ItemStack stack = context.getItemInHand();
 			if (level instanceof ServerLevel serverlevel) {
-				RailShape railshape = blockstate.getBlock() instanceof BaseRailBlock baseRailBlock ? baseRailBlock.sophisticated_getRailDirection(blockstate, level, blockpos, null) : RailShape.NORTH_SOUTH;
+				RailShape railshape = blockstate.getBlock() instanceof BaseRailBlock baseRailBlock ? baseRailBlock.sophisticatedlibrary_getRailDirection(blockstate, level, blockpos, null) : RailShape.NORTH_SOUTH;
 				double ascendingOffset = 0.0;
 				if (railshape.isAscending()) {
 					ascendingOffset = 0.5;
