@@ -1,6 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.client;
 
-import com.github.salandora.sophisticatedlibrary.model.util.ModelData;
+import com.github.salandora.sophisticatedlibrary.model.api.v1.util.ModelData;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
