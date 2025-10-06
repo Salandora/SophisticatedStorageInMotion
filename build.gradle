@@ -70,7 +70,7 @@ repositories {
     maven { url = "https://maven.fabricmc.net/" } // FAPI, Loader
     maven { url = "https://maven.quiltmc.org/repository/release" } // QM
     maven {
-        name = "GitHubPackages"
+        name = "SophisticatedCore GitHubPackages"
         url = "https://maven.pkg.github.com/Salandora/SophisticatedCore"
         credentials {
             username = System.getenv("USERNAME")
@@ -81,7 +81,18 @@ repositories {
         }
     }
     maven {
-        name = "GitHubPackagesStorage"
+        name = "SophisticatedLibrary GitHubPackages"
+        url = "https://maven.pkg.github.com/Salandora/SophisticatedLibrary"
+        credentials {
+            username = System.getenv("USERNAME")
+            password = System.getenv("READ_PACKAGES_TOKEN")
+        }
+        content {
+            includeGroupAndSubgroups "sophisticatedlibrary"
+        }
+    }
+    maven {
+        name = "SophisticatedStorage GitHubPackages"
         url = "https://maven.pkg.github.com/Salandora/SophisticatedStorage"
         credentials {
             username = System.getenv("USERNAME")
@@ -222,7 +233,7 @@ dependencies {
     if (findProject(":SophisticatedLibrary") != null) {
         implementation project(path: ":SophisticatedLibrary", configuration: "namedElements")
     } else {
-        modImplementation(include("com.github.salandora.sophisticatedlibrary:${project.minecraft_version}-${project.sophisticatedlibrary_version}"))
+        modImplementation("com.github.salandora.sophisticatedlibrary:${project.sl_version}")
     }
 
     if (findProject(':SophisticatedCore') != null) {
@@ -314,7 +325,8 @@ processResources {
             loader_version      : project.loader_version,
             fabric_version      : project.fabric_version,
             sc_version          : mavenVersionToFabric(project.sc_version),
-            ss_version          : mavenVersionToFabric(project.ss_version)
+            ss_version          : mavenVersionToFabric(project.ss_version),
+            sl_version          : mavenVersionToFabric(project.sl_version)
     ]
 
     inputs.properties replaceProperties
