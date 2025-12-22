@@ -31,7 +31,8 @@ public class SophisticatedStorageInMotion implements ModInitializer {
 	}
 
 	private static void setup() {
-		StorageInMotionPacketHandler.init();
+		StorageInMotionPacketHandler.INSTANCE.init();
+		StorageInMotionPacketHandler.INSTANCE.initServerListener();
 		ModItems.registerDispenseBehavior();
 	}
 }

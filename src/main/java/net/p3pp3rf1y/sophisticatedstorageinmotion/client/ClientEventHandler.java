@@ -1,11 +1,11 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.client;
 
+import com.github.salandora.sophisticatedlibrary.event.api.v0.client.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.TooltipComponentCallback;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
-import net.p3pp3rf1y.sophisticatedcore.event.client.ClientLifecycleEvent;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.client.gui.MovingStorageScreen;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.client.gui.PaintbrushMovingStorageOverlay;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.init.ModItems;
@@ -22,7 +22,7 @@ public class ClientEventHandler {
 		ClientEventHandler.registerOverlay();
 		ClientEventHandler.registerTooltipComponent();
 
-		ClientLifecycleEvent.CLIENT_LEVEL_LOAD.register(ClientMovingStorageContentsTooltip::onWorldLoad);
+		ClientLifecycleEvents.CLIENT_LEVEL_LOAD.register(ClientMovingStorageContentsTooltip::onWorldLoad);
 
 		net.p3pp3rf1y.sophisticatedstorage.client.ClientEventHandler.addSortScreenMatcher(screen -> screen instanceof MovingStorageScreen);
 	}

@@ -1,9 +1,8 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.entity;
 
-import io.github.fabricators_of_create.porting_lib.util.LazyOptional;
+import com.github.salandora.sophisticatedlibrary.util.Capabilities;
+import com.github.salandora.sophisticatedlibrary.util.LazyOptional;
 import net.fabricmc.fabric.api.lookup.v1.entity.EntityApiLookup;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -28,7 +27,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
-import net.p3pp3rf1y.sophisticatedcore.util.Capabilities;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import net.p3pp3rf1y.sophisticatedstorage.SophisticatedStorage;
 import net.p3pp3rf1y.sophisticatedstorage.block.StorageWrapper;
@@ -248,13 +246,7 @@ public class StorageBoat extends ChestBoat implements IMovingStorageEntity {
 	@Override
 	public ItemStack removeChestVehicleItemNoUpdate(int slot) {
 		ITrackedContentsItemHandler inventoryHandler = getStorageHolder().getStorageWrapper().getInventoryForInputOutput();
-		ItemStack stack = inventoryHandler.getStackInSlot(slot);
-		long extracted;
-		try (Transaction ctx = Transaction.openOuter()) {
-			extracted = inventoryHandler.extractSlot(slot, ItemVariant.of(stack), stack.getCount(), ctx);
-			ctx.commit();
-		}
-		return stack.copyWithCount((int) extracted);
+		return inventoryHandler.extractItem(slot, inventoryHandler.getStackInSlot(slot).getCount(), false);
 	}
 
 	@Override
@@ -264,14 +256,7 @@ public class StorageBoat extends ChestBoat implements IMovingStorageEntity {
 
 	@Override
 	public ItemStack removeChestVehicleItem(int slot, int amount) {
-		ITrackedContentsItemHandler inventoryHandler = getStorageHolder().getStorageWrapper().getInventoryForInputOutput();
-		ItemStack stack = inventoryHandler.getStackInSlot(slot);
-		long extracted;
-		try (Transaction ctx = Transaction.openOuter()) {
-			extracted = inventoryHandler.extractSlot(slot, ItemVariant.of(stack), stack.getCount(), ctx);
-			ctx.commit();
-		}
-		return stack.copyWithCount((int) extracted);
+		return getStorageHolder().getStorageWrapper().getInventoryForInputOutput().extractItem(slot, amount, false);
 	}
 
 	@Override
@@ -281,7 +266,7 @@ public class StorageBoat extends ChestBoat implements IMovingStorageEntity {
 
 	@Override
 	public boolean canPlaceItem(int slot, ItemStack stack) {
-		return getStorageHolder().getStorageWrapper().getInventoryForInputOutput().isItemValid(slot, ItemVariant.of(stack), stack.getCount());
+		return getStorageHolder().getStorageWrapper().getInventoryForInputOutput().isItemValid(slot, stack);
 	}
 
 	@Override

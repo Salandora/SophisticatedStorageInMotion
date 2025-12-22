@@ -1,6 +1,5 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.entity;
 
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -288,10 +287,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 
 	protected void tryToPickup(Level level, ItemEntity itemEntity) {
 		ItemStack remainingStack = itemEntity.getItem().copy();
-		try (Transaction ctx = Transaction.openOuter()) {
-			remainingStack = InventoryHelper.runPickupOnPickupResponseUpgrades(level, getStorageWrapper().getUpgradeHandler(), remainingStack, ctx);
-			ctx.commit();
-		}
+		remainingStack = InventoryHelper.runPickupOnPickupResponseUpgrades(level, getStorageWrapper().getUpgradeHandler(), remainingStack, false);
 		if (remainingStack.getCount() < itemEntity.getItem().getCount()) {
 			itemEntity.setItem(remainingStack);
 		}
@@ -422,7 +418,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 			return InteractionResult.PASS;
 		}
 
-		player.sophisticatedCore_openMenu(new SophisticatedMenuProvider((w, p, pl) -> createMenu(w, pl), entity.getName(), false), buffer -> buffer.writeInt(entity.getId()));
+		player.sophisticatedLibrary_openMenu(new SophisticatedMenuProvider((w, p, pl) -> createMenu(w, pl), entity.getName(), false), buffer -> buffer.writeInt(entity.getId()));
 		return player.level().isClientSide ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
 	}
 

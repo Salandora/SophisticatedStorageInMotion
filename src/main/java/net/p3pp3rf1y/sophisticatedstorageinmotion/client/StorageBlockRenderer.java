@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.client;
 
+import com.github.salandora.sophisticatedlibrary.model.api.v1.util.ModelData;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
@@ -13,7 +14,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
-import net.p3pp3rf1y.sophisticatedcore.util.model.ModelData;
 import net.p3pp3rf1y.sophisticatedstorage.block.BarrelBlockEntity;
 import net.p3pp3rf1y.sophisticatedstorage.block.StorageBlockEntity;
 import net.p3pp3rf1y.sophisticatedstorage.client.render.BarrelBakedModelBase;
@@ -27,8 +27,8 @@ public class StorageBlockRenderer {
 			BakedModel bakedModel = blockRenderer.getBlockModel(barrel.getBlockState());
 			ModelData modelData = BarrelBakedModelBase.getModelDataFromBlockEntity(barrel);
 			// Added to set the model data for the barrel baked model
-			if (bakedModel instanceof BarrelBakedModelBase barrelBakedModel) {
-				barrelBakedModel.setModelData(modelData);
+			if (bakedModel instanceof BarrelBakedModelBase) {
+				BarrelBakedModelBase.setModelData(barrel.getBlockState(), modelData);
 			}
 			BlockAndTintGetter wrappedLevel = new StaticBlockEntityTintGetter(minecraft.level, renderBlockEntity, packedLight); //TODO try to optimize not to create a new instance all the time, perhaps level keyed cache for these and then only setting blockentity in the render call
 			//for (RenderType renderType : bakedModel.getRenderTypes(state, RandomSource.create(42L), modelData)) {

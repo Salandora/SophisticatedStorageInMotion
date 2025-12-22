@@ -183,34 +183,23 @@ dependencies {
     implementation("javax.annotation:javax.annotation-api:1.3.2")
     implementation("com.google.code.findbugs:jsr305:3.0.2")
 
-    if (findProject(':SophisticatedCore') != null) {
+    if (findProject(":SophisticatedLibrary") != null) {
+        implementation project(path: ":SophisticatedLibrary", configuration: "namedElements")
+    } else {
+        modImplementation("com.github.salandora:sophisticatedlibrary:${project.sl_version}")
+    }
+
+    if (findProject(":SophisticatedCore") != null) {
         implementation project(path: ":SophisticatedCore", configuration: "namedElements")
-        var core = project(":SophisticatedCore")
-        if (core.port_lib_modules != "none") {
-            for (def module in core.port_lib_modules.split(',')) {
-                modApi("io.github.fabricators_of_create.Porting-Lib:${module.trim()}:$core.port_lib_version+$minecraft_version")
-            }
-        }
     } else {
         modImplementation("sophisticatedcore:sophisticatedcore:${sc_version}")
     }
+
     if (findProject(':SophisticatedStorage') != null) {
         implementation project(path: ":SophisticatedStorage", configuration: "namedElements")
-        var storage = project(":SophisticatedStorage")
-        if (storage.port_lib_modules != "none") {
-            for (def module in storage.port_lib_modules.split(',')) {
-                modApi("io.github.fabricators_of_create.Porting-Lib:${module.trim()}:$storage.port_lib_version+$minecraft_version")
-            }
-        }
     } else {
         modImplementation("sophisticatedstorage:sophisticatedstorage:${ss_version}") {
             transitive = false
-        }
-    }
-
-    if (port_lib_modules != "none") {
-        for (def module in port_lib_modules.split(',')) {
-            modApi(include("io.github.fabricators_of_create.Porting-Lib:${module.trim()}:$port_lib_version+$minecraft_version"))
         }
     }
 
@@ -294,7 +283,7 @@ processResources {
             fabric_version      : project.fabric_version,
             sc_version          : mavenVersionToFabric(project.sc_version),
             ss_version          : mavenVersionToFabric(project.ss_version),
-            port_lib_version    : project.port_lib_version
+            sl_version          : mavenVersionToFabric(project.sl_version)
     ]
 
     inputs.properties replaceProperties

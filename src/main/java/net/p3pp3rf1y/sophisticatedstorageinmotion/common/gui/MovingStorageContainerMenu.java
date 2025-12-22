@@ -101,7 +101,7 @@ public class MovingStorageContainerMenu<T extends Entity & IMovingStorageEntity>
 			return;
 		}
 		getStorageEntity().ifPresent(entity ->
-				serverPlayer.sophisticatedCore_openMenu(new SophisticatedMenuProvider((w, p, pl) -> instantiateSettingsContainerMenu(w, pl, entity.getId()),
+				serverPlayer.sophisticatedLibrary_openMenu(new SophisticatedMenuProvider((w, p, pl) -> instantiateSettingsContainerMenu(w, pl, entity.getId()),
 						Component.translatable(StorageTranslationHelper.INSTANCE.translGui("settings.title")), false), buffer -> buffer.writeInt(entity.getId()))
 		);
 	}
@@ -150,7 +150,7 @@ public class MovingStorageContainerMenu<T extends Entity & IMovingStorageEntity>
 				if (!settingsNbt.isEmpty()) {
 					settingsContents.put(MovingStorageWrapper.SETTINGS_TAG, settingsNbt);
 					if (player instanceof ServerPlayer serverPlayer) {
-						StorageInMotionPacketHandler.sendToClient(serverPlayer, new MovingStorageContentsMessage(uuid, settingsContents));
+						StorageInMotionPacketHandler.INSTANCE.sendToClient(serverPlayer, new MovingStorageContentsMessage(uuid, settingsContents));
 					}
 				}
 			});

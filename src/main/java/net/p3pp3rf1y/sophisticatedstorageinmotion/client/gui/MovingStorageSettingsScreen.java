@@ -25,7 +25,7 @@ public class MovingStorageSettingsScreen extends StorageSettingsScreen {
 
 	@Override
 	protected void sendStorageInventoryScreenOpenMessage() {
-		StorageInMotionPacketHandler.sendToServer(new OpenMovingStorageInventoryMessage(entityId));
+		StorageInMotionPacketHandler.INSTANCE.sendToServer(new OpenMovingStorageInventoryMessage(entityId));
 	}
 
 	public static MovingStorageSettingsScreen constructScreen(SettingsContainerMenu<?> screenContainer, Inventory inventory, Component title) {

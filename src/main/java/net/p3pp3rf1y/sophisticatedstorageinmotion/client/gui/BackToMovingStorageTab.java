@@ -21,6 +21,6 @@ public class BackToMovingStorageTab extends Tab {
 
 	@Override
 	protected void onTabIconClicked(int button) {
-		StorageInMotionPacketHandler.sendToServer(new OpenMovingStorageInventoryMessage(entityId));
+		StorageInMotionPacketHandler.INSTANCE.sendToServer(new OpenMovingStorageInventoryMessage(entityId));
 	}
 }

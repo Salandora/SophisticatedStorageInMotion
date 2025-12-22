@@ -72,7 +72,7 @@ public class MovingStorageSettingsContainerMenu extends SettingsContainerMenu<IS
 				if (!settingsNbt.isEmpty()) {
 					settingsContents.put(MovingStorageWrapper.SETTINGS_TAG, settingsNbt);
 					if (player instanceof ServerPlayer serverPlayer) {
-						StorageInMotionPacketHandler.sendToClient(serverPlayer, new MovingStorageContentsMessage(uuid, settingsContents));
+						StorageInMotionPacketHandler.INSTANCE.sendToClient(serverPlayer, new MovingStorageContentsMessage(uuid, settingsContents));
 					}
 				}
 			});

@@ -1,6 +1,5 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.entity;
 
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -120,8 +119,8 @@ public class MovingStorageWrapper implements IStorageWrapper {
 	private void initInventoryHandler() {
 		inventoryHandler = new InventoryHandler(getNumberOfInventorySlots(), this, getContentsNbt(), contentsChangeHandler, StackUpgradeItem.getInventorySlotLimit(this), Config.SERVER.stackUpgrade) {
 			@Override
-			protected boolean isAllowed(ItemVariant resource) {
-				return isAllowedInStorage(resource.toStack());
+			protected boolean isAllowed(ItemStack stack) {
+				return isAllowedInStorage(stack);
 			}
 		};
 		inventoryHandler.addListener(getSettingsHandler().getTypeCategory(ItemDisplaySettingsCategory.class)::itemChanged);
@@ -202,8 +201,8 @@ public class MovingStorageWrapper implements IStorageWrapper {
 				inventoryIOHandler = null;
 			}) {
 				@Override
-				public boolean isItemValid(int slot, ItemVariant resource, int count) {
-					return super.isItemValid(slot, resource, count) && (resource.toStack(count).isEmpty() || SophisticatedStorage.MOD_ID.equals(BuiltInRegistries.ITEM.getKey(resource.getItem()).getNamespace()) || resource.toStack().is(ModItems.STORAGE_UPGRADE_TAG));
+				public boolean isItemValid(int slot, ItemStack stack) {
+					return super.isItemValid(slot, stack) && (stack.isEmpty() || SophisticatedStorage.MOD_ID.equals(BuiltInRegistries.ITEM.getKey(stack.getItem()).getNamespace()) || stack.is(ModItems.STORAGE_UPGRADE_TAG));
 				}
 			};
 			upgradeDefaultsHandlers.forEach(this::registerUpgradeDefaultsHandlerInUpgradeHandler);

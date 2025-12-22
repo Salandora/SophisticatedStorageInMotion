@@ -1,9 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.item;
 
 import net.fabricmc.api.EnvType;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
@@ -153,7 +150,7 @@ public abstract class MovingStorageItem extends ItemBase implements IStashStorag
 		if (getStorageItemType(storageStack).map(item -> item instanceof ShulkerBoxItem).orElse(false)) {
 			MovingStorageWrapper wrapper = getMovingStorageWrapper(storageStack);
 
-			if (StorageUtil.simulateInsert(wrapper.getInventoryForUpgradeProcessing(), ItemVariant.of(stack), stack.getCount(), null) == 0) {
+			if (wrapper.getInventoryForUpgradeProcessing().insertItem(stack, true).getCount() == stack.getCount()) {
 				return StashResult.NO_SPACE;
 			}
 			if (wrapper.getInventoryHandler().getSlotTracker().getItems().contains(stack.getItem()) || wrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).matchesFilter(stack)) {
@@ -173,16 +170,12 @@ public abstract class MovingStorageItem extends ItemBase implements IStashStorag
 		return wrapper;
 	}
 
-	public ItemStack stash(ItemStack movingStorageStack, ItemStack stack, @Nullable Transaction ctx) {
+	public ItemStack stash(ItemStack movingStorageStack, ItemStack stack, boolean simulate) {
 		MovingStorageWrapper wrapper = getMovingStorageWrapper(movingStorageStack);
 		if (wrapper.getContentsUuid().isEmpty()) {
 			wrapper.setContentsUuid(UUID.randomUUID());
 		}
-		try (Transaction inner = Transaction.openNested(ctx)) {
-			long inserted = wrapper.getInventoryForUpgradeProcessing().insert(ItemVariant.of(stack), stack.getCount(), inner);
-			inner.commit();
-			return stack.copyWithCount(stack.getCount() - (int) inserted);
-		}
+		return wrapper.getInventoryForUpgradeProcessing().insertItem(stack, simulate);
 	}
 
 	@Override
@@ -192,14 +185,11 @@ public abstract class MovingStorageItem extends ItemBase implements IStashStorag
 		}
 
 		ItemStack stackToStash = slot.getItem();
-		ItemStack stashResult;
-		try(Transaction simulate = Transaction.openOuter()) {
-			stashResult = stash(stack, stackToStash, simulate);
-		}
+		ItemStack stashResult = stash(stack, stackToStash, true);
 		if (stashResult.getCount() != stackToStash.getCount()) {
 			int countToTake = stackToStash.getCount() - stashResult.getCount();
 			ItemStack takeResult = slot.safeTake(countToTake, countToTake, player);
-			stash(stack, takeResult, null);
+			stash(stack, takeResult, false);
 			return true;
 		}
 
@@ -216,7 +206,7 @@ public abstract class MovingStorageItem extends ItemBase implements IStashStorag
 			return super.overrideOtherStackedOnMe(stack, otherStack, slot, action, player, carriedAccess);
 		}
 
-		ItemStack result = stash(stack, otherStack, null);
+		ItemStack result = stash(stack, otherStack, false);
 		if (result.getCount() != otherStack.getCount()) {
 			carriedAccess.set(result);
 			slot.set(stack);

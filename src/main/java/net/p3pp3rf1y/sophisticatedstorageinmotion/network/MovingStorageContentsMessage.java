@@ -1,50 +1,42 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.network;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
+import com.github.salandora.sophisticatedlibrary.network.api.v0.NetworkEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.p3pp3rf1y.sophisticatedcore.client.render.ClientStorageContentsTooltipBase;
-import net.p3pp3rf1y.sophisticatedcore.network.SimplePacketBase;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.MovingStorageData;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
+import java.util.function.Supplier;
 
-public class MovingStorageContentsMessage extends SimplePacketBase {
-	private UUID storageUuid;
-	private @Nullable CompoundTag contents;
+public record MovingStorageContentsMessage(UUID storageUuid, @Nullable CompoundTag contents) {
 
-	public MovingStorageContentsMessage(UUID storageUuid, @Nullable CompoundTag contents) {
-		this.storageUuid = storageUuid;
-		this.contents = contents;
+	public static void encode(MovingStorageContentsMessage msg, FriendlyByteBuf buffer) {
+		buffer.writeUUID(msg.storageUuid);
+		buffer.writeNbt(msg.contents);
 	}
 
-	public MovingStorageContentsMessage(FriendlyByteBuf buffer) {
-		this(buffer.readUUID(), buffer.readNbt());
+	public static MovingStorageContentsMessage decode(FriendlyByteBuf buffer) {
+		return new MovingStorageContentsMessage(buffer.readUUID(), buffer.readNbt());
 	}
 
-	@Override
-	public void write(FriendlyByteBuf buffer) {
-		buffer.writeUUID(this.storageUuid);
-		buffer.writeNbt(this.contents);
+	static void onMessage(MovingStorageContentsMessage msg, Supplier<NetworkEvent.Context> contextSupplier) {
+		NetworkEvent.Context context = contextSupplier.get();
+		context.enqueueWork(() -> handleMessage(msg));
+		context.setPacketHandled(true);
 	}
 
-	@Override
-	@Environment(EnvType.CLIENT)
-	public boolean handle(SimplePacketBase.Context context) {
-		context.enqueueWork(() -> {
-			LocalPlayer player = Minecraft.getInstance().player;
-			if (player == null || this.contents == null) {
-				return;
-			}
 
-			MovingStorageData.get(this.storageUuid).setContents(this.storageUuid, this.contents);
-			ClientStorageContentsTooltipBase.refreshContents();
-		});
-		return true;
+	private static void handleMessage(MovingStorageContentsMessage msg) {
+		LocalPlayer player = Minecraft.getInstance().player;
+		if (player == null || msg.contents == null) {
+			return;
+		}
+
+		MovingStorageData.get(msg.storageUuid).setContents(msg.storageUuid, msg.contents);
+		ClientStorageContentsTooltipBase.refreshContents();
 	}
-
 }

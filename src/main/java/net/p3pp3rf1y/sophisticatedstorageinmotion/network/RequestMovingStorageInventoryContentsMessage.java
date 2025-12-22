@@ -1,38 +1,38 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.network;
 
+import com.github.salandora.sophisticatedlibrary.network.api.v0.NetworkEvent;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
-import net.p3pp3rf1y.sophisticatedcore.network.SimplePacketBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
 import net.p3pp3rf1y.sophisticatedstorage.block.StorageWrapper;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.entity.MovingStorageData;
 
 import javax.annotation.Nullable;
 import java.util.UUID;
+import java.util.function.Supplier;
 
-public class RequestMovingStorageInventoryContentsMessage extends SimplePacketBase {
+public class RequestMovingStorageInventoryContentsMessage {
 	private final UUID storageUuid;
 
 	public RequestMovingStorageInventoryContentsMessage(UUID storageUuid) {
 		this.storageUuid = storageUuid;
 	}
 
-	public RequestMovingStorageInventoryContentsMessage(FriendlyByteBuf packetBuffer) {
-		this(packetBuffer.readUUID());
+	public static void encode(RequestMovingStorageInventoryContentsMessage msg, FriendlyByteBuf packetBuffer) {
+		packetBuffer.writeUUID(msg.storageUuid);
 	}
 
-	@Override
-	public void write(FriendlyByteBuf packetBuffer) {
-		packetBuffer.writeUUID(this.storageUuid);
+	public static RequestMovingStorageInventoryContentsMessage decode(FriendlyByteBuf packetBuffer) {
+		return new RequestMovingStorageInventoryContentsMessage(packetBuffer.readUUID());
 	}
 
-	@Override
-	public boolean handle(Context context) {
-		context.enqueueWork(() -> handleMessage(context.getSender(), this));
-		return true;
+	static void onMessage(RequestMovingStorageInventoryContentsMessage msg, Supplier<NetworkEvent.Context> contextSupplier) {
+		NetworkEvent.Context context = contextSupplier.get();
+		context.enqueueWork(() -> handleMessage(context.getSender(), msg));
+		context.setPacketHandled(true);
 	}
 
 	public static void handleMessage(@Nullable ServerPlayer player, RequestMovingStorageInventoryContentsMessage msg) {
@@ -57,6 +57,6 @@ public class RequestMovingStorageInventoryContentsMessage extends SimplePacketBa
 		}
 		CompoundTag newBaseContentsTag = new CompoundTag();
 		newBaseContentsTag.put(StorageWrapper.CONTENTS_TAG, inventoryContents);
-		StorageInMotionPacketHandler.sendToClient(player, new MovingStorageContentsMessage(msg.storageUuid, newBaseContentsTag));
+		StorageInMotionPacketHandler.INSTANCE.sendToClient(player, new MovingStorageContentsMessage(msg.storageUuid, newBaseContentsTag));
 	}
 }

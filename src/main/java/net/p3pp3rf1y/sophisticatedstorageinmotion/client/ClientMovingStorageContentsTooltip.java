@@ -33,6 +33,6 @@ public class ClientMovingStorageContentsTooltip extends ClientStorageContentsToo
 
 	@Override
 	protected void sendInventorySyncRequest(UUID uuid) {
-		StorageInMotionPacketHandler.sendToServer(new RequestMovingStorageInventoryContentsMessage(uuid));
+		StorageInMotionPacketHandler.INSTANCE.sendToServer(new RequestMovingStorageInventoryContentsMessage(uuid));
 	}
 }
