@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.init;
 
-import com.github.salandora.sophisticatedlibrary.util.DeferredHolder;
-import com.github.salandora.sophisticatedlibrary.util.DeferredRegister;
+import com.github.salandora.sophisticatedfabriclib.util.DeferredHolder;
+import com.github.salandora.sophisticatedfabriclib.util.DeferredRegister;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.recipe.v1.ingredient.CustomIngredientSerializer;
 import net.minecraft.core.registries.BuiltInRegistries;

@@ -37,7 +37,7 @@
         "minecraft": "${minecraft_version}",
         "sophisticatedcore": "${sc_version}",
         "sophisticatedstorage": "${ss_version}",
-        "sophisticatedlibrary": "${sl_version}"
+        "sophisticatedfabriclib": "${sl_version}"
     },
     "suggests": {
         "modmenu": "*"
