@@ -1,6 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.init;
 
-import com.github.salandora.sophisticatedlibrary.util.Capabilities;
+import com.github.salandora.sophisticatedfabriclib.util.Capabilities;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;

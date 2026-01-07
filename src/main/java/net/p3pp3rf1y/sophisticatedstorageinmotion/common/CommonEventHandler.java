@@ -1,6 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.common;
 
-import com.github.salandora.sophisticatedlibrary.event.api.v0.common.PlayerEvents;
+import com.github.salandora.sophisticatedfabriclib.event.api.v0.common.PlayerEvents;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;

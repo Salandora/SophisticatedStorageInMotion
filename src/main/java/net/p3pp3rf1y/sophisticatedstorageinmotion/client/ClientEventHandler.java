@@ -1,6 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorageinmotion.client;
 
-import com.github.salandora.sophisticatedlibrary.event.api.v0.client.ClientLifecycleEvents;
+import com.github.salandora.sophisticatedfabriclib.event.api.v0.client.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.TooltipComponentCallback;
