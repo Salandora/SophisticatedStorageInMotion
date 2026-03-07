@@ -252,12 +252,10 @@ dependencies {
     // EMI
     modCompileOnly("dev.emi:emi-fabric:${project.emi_version}")
     // JEI
-    //modCompileOnlyApi("mezz.jei:jei-$minecraft_version-common-api:${project.jei_version}")
-    modCompileOnly("mezz.jei:jei-${project.minecraft_version}-fabric:${project.jei_version}")
+    modCompileOnly("mezz.jei:jei-${project.minecraft_version}-fabric:${project.jei_version}") { transitive = false }
     // REI
     modCompileOnly("me.shedaniel:RoughlyEnoughItems-api-fabric:${project.rei_version}")
     modCompileOnly("me.shedaniel:RoughlyEnoughItems-default-plugin-fabric:${project.rei_version}")
-    modCompileOnly("me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}")
 
     testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.+'
