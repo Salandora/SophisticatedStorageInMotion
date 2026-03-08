@@ -418,7 +418,7 @@ public class EntityStorageHolder<T extends Entity & IMovingStorageEntity> implem
 			return InteractionResult.PASS;
 		}
 
-		player.sophisticatedLibrary_openMenu(new SophisticatedMenuProvider((w, p, pl) -> createMenu(w, pl), entity.getName(), false), buffer -> buffer.writeInt(entity.getId()));
+		player.sophisticatedFabricLibrary_openMenu(new SophisticatedMenuProvider((w, p, pl) -> createMenu(w, pl), entity.getName(), false), buffer -> buffer.writeInt(entity.getId()));
 		return player.level().isClientSide ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
 	}
 

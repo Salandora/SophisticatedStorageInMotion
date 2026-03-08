@@ -101,7 +101,7 @@ public class MovingStorageContainerMenu<T extends Entity & IMovingStorageEntity>
 			return;
 		}
 		getStorageEntity().ifPresent(entity ->
-				serverPlayer.sophisticatedLibrary_openMenu(new SophisticatedMenuProvider((w, p, pl) -> instantiateSettingsContainerMenu(w, pl, entity.getId()),
+				serverPlayer.sophisticatedFabricLibrary_openMenu(new SophisticatedMenuProvider((w, p, pl) -> instantiateSettingsContainerMenu(w, pl, entity.getId()),
 						Component.translatable(StorageTranslationHelper.INSTANCE.translGui("settings.title")), false), buffer -> buffer.writeInt(entity.getId()))
 		);
 	}
