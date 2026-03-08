@@ -118,7 +118,7 @@ public class StorageBoatItem extends MovingStorageItem {
 
 	@Override
 	public Component getName(ItemStack stack) {
-		SimpleItemContent storageItemContent = stack.sophisticatedLibrary_get(ModDataComponents.STORAGE_ITEM);
+		SimpleItemContent storageItemContent = stack.sophisticatedFabricLibrary_get(ModDataComponents.STORAGE_ITEM);
 		Boat.Type boatType = getBoatType(stack);
 		String descriptionId = /*boatType.isRaft()*/ boatType == Boat.Type.BAMBOO ? RAFT_DESCRIPTION_ID : getDescriptionId();
 		return Component.translatable(descriptionId, getWoodName(boatType), storageItemContent != null ? storageItemContent.copy().getHoverName() : "");

@@ -34,8 +34,8 @@ public class MovingStorageTierUpgradeShapedRecipe extends ShapedRecipe implement
 			ItemStack originalStorageItem = MovingStorageItem.getStorageItem(originalMovingStorage);
 			ItemStack upgradedStorageItem = MovingStorageItem.getStorageItem(upgradedMovingStorage);
 			upgradedStorageItem.applyComponents(originalStorageItem.getComponents());
-			upgradedStorageItem.sophisticatedLibrary_set(ModCoreDataComponents.NUMBER_OF_INVENTORY_SLOTS, MovingStorageWrapper.getDefaultNumberOfInventorySlots(upgradedStorageItem));
-			upgradedStorageItem.sophisticatedLibrary_set(ModCoreDataComponents.NUMBER_OF_UPGRADE_SLOTS, MovingStorageWrapper.getDefaultNumberOfUpgradeSlots(upgradedStorageItem));
+			upgradedStorageItem.sophisticatedFabricLibrary_set(ModCoreDataComponents.NUMBER_OF_INVENTORY_SLOTS, MovingStorageWrapper.getDefaultNumberOfInventorySlots(upgradedStorageItem));
+			upgradedStorageItem.sophisticatedFabricLibrary_set(ModCoreDataComponents.NUMBER_OF_UPGRADE_SLOTS, MovingStorageWrapper.getDefaultNumberOfUpgradeSlots(upgradedStorageItem));
 			upgradedMovingStorage.applyComponents(originalMovingStorage.getComponents());
 			MovingStorageItem.setStorageItem(upgradedMovingStorage, upgradedStorageItem);
 		});

@@ -105,8 +105,8 @@ public class StorageBoat extends ChestBoat implements IMovingStorageEntity {
 	public ItemStack getPickResult() {
 		ItemStack result = getDropStack();
 		ItemStack storageItemCopy = getStorageItem().copy();
-		storageItemCopy.sophisticatedLibrary_remove(ModCoreDataComponents.STORAGE_UUID);
-		result.sophisticatedLibrary_set(ModDataComponents.STORAGE_ITEM, SimpleItemContent.copyOf(storageItemCopy));
+		storageItemCopy.sophisticatedFabricLibrary_remove(ModCoreDataComponents.STORAGE_UUID);
+		result.sophisticatedFabricLibrary_set(ModDataComponents.STORAGE_ITEM, SimpleItemContent.copyOf(storageItemCopy));
 		return result;
 	}
 
