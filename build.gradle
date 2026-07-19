@@ -571,6 +571,7 @@ publishMods {
 
         // Dependencies
         requires("sophisticated-core-unofficial-fabric-port", "sophisticated-storage-unofficial-fabric-port")
+        requires("sophisticated-fabric-lib")
         requires("fabric-api", "forge-config-api-port")
 
         optional("emi", "jei", "roughly-enough-items")
@@ -584,6 +585,7 @@ publishMods {
 
         // Dependencies
         requires("sophisticated-core-(unofficial-fabric-port)", "sophisticated-storage-(unofficial-fabric-port)")
+        requires("sophisticated-fabric-lib")
         requires("fabric-api", "forge-config-api-port")
 
         optional("emi", "jei", "rei")
