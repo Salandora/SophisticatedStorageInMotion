@@ -81,14 +81,14 @@ repositories {
         }
     }
     maven {
-        name = "SophisticatedLibrary GitHubPackages"
-        url = "https://maven.pkg.github.com/Salandora/SophisticatedLibrary"
+        name = "SophisticatedFabricLibrary GitHubPackages"
+        url = "https://maven.pkg.github.com/Salandora/SophisticatedFabricLib"
         credentials {
             username = System.getenv("USERNAME")
             password = System.getenv("READ_PACKAGES_TOKEN")
         }
         content {
-            includeGroupAndSubgroups "sophisticatedlibrary"
+            includeGroupAndSubgroups "com.github.salandora"
         }
     }
     maven {
