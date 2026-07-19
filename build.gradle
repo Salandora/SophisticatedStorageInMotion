@@ -74,14 +74,52 @@ repositories {
         }
     }
     maven {
-        name = "GHPStorage"
-        url = uri("https://maven.pkg.github.com/Salandora/sophisticatedstorage")
+        name = "SophisticatedFabricLibrary GitHubPackages"
+        url = "https://maven.pkg.github.com/Salandora/SophisticatedFabricLib"
         credentials {
             username = System.getenv("USERNAME")
             password = System.getenv("READ_PACKAGES_TOKEN")
         }
         content {
-            includeGroupByRegex "sophisticatedstorage.*"
+            includeGroupAndSubgroups "com.github.salandora"
+        }
+    }
+    maven {
+        name = "SophisticatedStorage GitHubPackages"
+        url = "https://maven.pkg.github.com/Salandora/SophisticatedStorage"
+        credentials {
+            username = System.getenv("USERNAME")
+            password = System.getenv("READ_PACKAGES_TOKEN")
+        }
+        content {
+            includeGroupAndSubgroups"sophisticatedstorage"
+        }
+    }
+    maven { // Forge Config API Port
+        name = "Fuzs Mod Resources"
+        url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/"
+        content {
+            includeGroup "fuzs.forgeconfigapiport"
+        }
+    }
+    maven { // Jei
+        url = "https://modmaven.dev"
+        content {
+            includeGroup "mezz.jei"
+        }
+    }
+    maven {  // REI and deps
+        url = "https://maven.shedaniel.me/"
+        content {
+            includeGroupAndSubgroups "me.shedaniel"
+            includeGroupAndSubgroups "dev.architectury"
+        }
+    }
+    maven {  // Emi
+        url = "https://maven.terraformersmc.com/releases/"
+        content {
+            includeGroupAndSubgroups "com.terraformersmc"
+            includeGroupAndSubgroups "dev.emi"
         }
     }
 }
